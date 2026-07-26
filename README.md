@@ -6,13 +6,11 @@ Human-controlled agent workflows by Jaeyeol Lee.
 
 A squire traditionally prepared equipment, carried messages, and supported a knight throughout a campaign while the knight retained command. Squire brings that relationship to agent workflows: its plugins prepare the field, coordinate specialized agents, and surface decisions while the human remains in control.
 
-## Plugins
-
-### Algorithmic Prompting
+## Algorithmic Prompting
 
 Turn a software goal into parallel, commit-ready work that coding agents can execute and a human can control.
 
-## Mental model
+### Mental model
 
 ```text
 Goal
@@ -32,7 +30,7 @@ Summary and task index return first
 └── System overview lands independently
 ```
 
-## What you get
+### What you get
 
 - A clickable task index for every plan
 - A fast provisional topology derived from intentionally structured layout
@@ -45,7 +43,7 @@ Summary and task index return first
 
 Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lean profile keeps each detail job and landed prompt compact; use deeper profiles only where the task benefits from more context and edge cases.
 
-## Workflow
+### Workflow
 
 1. Describe the goal or provide a spec.
 2. Review the provisional routing summary, lanes, task shells, and explicit dependencies.
@@ -53,7 +51,7 @@ Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lea
 4. Invoke reconciliation to review proposed graph or prompt changes.
 5. Approve the next ready batch and integrate completed commits.
 
-## Install
+### Install
 
 ```sh
 codex plugin marketplace add malkoG/algorithmic-prompting
@@ -62,7 +60,7 @@ codex plugin add algorithmic-prompting@squire
 
 Start a new ChatGPT or Codex conversation after installation.
 
-## Update
+### Update
 
 ```sh
 codex plugin marketplace upgrade squire
