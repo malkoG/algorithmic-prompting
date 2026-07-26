@@ -15,7 +15,7 @@ A ChatGPT and Codex plugin for decomposing implementation goals into a few broad
 - Hard dependency DAGs and file-collision constraints
 - Conversation-ready Mermaid topology
 - Draft coding-agent prompt for every subtask
-- Clickable task files for large plans
+- `00-task-index.md` and kebab-case task files for every plan, including one-task plans
 - Human-approved worktree, branch, commit, and merge coordination
 - Exactly one focused commit per dispatched task, with no internal graph IDs
 - Outcome-based commit subjects followed by two to four bullet lines

@@ -1,7 +1,7 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.4.2",
-  "description": "Partition work into broad parallel lanes and a small number of atomic commit-sized subtasks.",
+  "version": "0.4.3",
+  "description": "Plan parallel lanes and atomic commits with a consistent clickable task index for every plan.",
   "author": {
     "name": "Jaeyeol Lee",
     "email": "jaeyeol.lee@hey.com"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Plan parallel worktrees and draft bounded agent prompts.",
-    "longDescription": "Partition implementation goals into broad parallel lanes, then split each lane into the fewest atomic commits needed for reviewable and revertible history; map every task one-to-one to a commit and coding-agent prompt; derive lane and commit DAGs; and advance work through human-approved Kahn scheduling.",
+    "longDescription": "Partition implementation goals into broad parallel lanes and atomic commit units; map every task one-to-one to a commit and coding-agent prompt; always create a temporary clickable task index and kebab-case task files regardless of plan size; derive lane and commit DAGs; and advance work through human-approved Kahn scheduling.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
@@ -23,10 +23,11 @@
       "One structured commit per dispatched task",
       "Conversation-ready Mermaid topology",
       "Clickable task-file navigation",
+      "Always-on task index",
       "Coding-agent prompt drafting",
       "Worktree scheduling",
       "HITL Kahn coordination"
     ],
-    "defaultPrompt": "Partition this goal into broad parallel lanes, split each lane into the fewest atomic commit-sized tasks, map every task one-to-one to an outcome-based commit without internal graph IDs, and guide manual Kahn execution."
+    "defaultPrompt": "Partition this goal into broad parallel lanes and atomic commit-sized tasks, always create and link a temporary task index plus one kebab-case file per task, map every task one-to-one to an outcome-based commit without internal graph IDs, and guide manual Kahn execution."
   }
 }

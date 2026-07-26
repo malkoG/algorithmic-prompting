@@ -1,6 +1,6 @@
 ---
 name: algorithmic-prompting
-description: Partition software work into broad parallel execution lanes, then split each lane into a small number of atomic commit-sized subtasks; derive lane and commit dependency DAGs; generate bounded coding-agent prompts; and coordinate human-in-the-loop Kahn scheduling across Git worktrees. Use for implementation plans, tech specs, ADRs, issue breakdowns, coding-agent delegation, parallel agent work, commit-wise planning, worktree scheduling, merge-order planning, or dependency-graph reviews.
+description: Partition software work into broad parallel execution lanes, split each lane into atomic commit-sized subtasks, always create a clickable temporary task index and task files, derive lane and commit dependency DAGs, generate bounded coding-agent prompts, and coordinate human-in-the-loop Kahn scheduling across Git worktrees. Use for implementation plans, tech specs, ADRs, issue breakdowns, coding-agent delegation, parallel agent work, commit-wise planning, worktree scheduling, merge-order planning, or dependency-graph reviews.
 ---
 
 # Algorithmic Prompting
@@ -107,17 +107,19 @@ Add authenticated session handling
 - Cover successful and rejected sign-in flows
 ```
 
-## Use clickable task files for large plans
+## Create clickable task files for every plan
 
-When a plan has more than five subtasks, or when the user asks for compact or clickable navigation, keep detailed task content out of chat while making the conversation itself sufficient for routine navigation:
+Use the same task-file experience for every plan, including a single task. Keep detailed prompt content in files while making the conversation sufficient for routine navigation:
 
-1. Persist the plan JSON in a temporary directory outside the repository unless the user requests a durable project location.
-2. Run `scripts/render_task_files.py <plan.json> [--output-dir <existing-temp-dir>]`.
+1. Persist every plan JSON in a temporary directory outside the repository unless the user requests a durable project location.
+2. Always run `scripts/render_task_files.py <plan.json> [--output-dir <existing-temp-dir>]`. Never skip rendering because the task count is small.
 3. Paste the renderer's `conversation_summary` into chat, including its Mermaid topology. Treat it as the primary plan view and `00-task-index.md` as an optional deep dive.
 4. For 12 or fewer tasks, list every task in the conversation as one compact linked line containing its ID, title, and status. For larger plans, show total status counts, per-lane ready/total counts, and direct links for ready, active, and blocked tasks; summarize waiting and completed tasks by count.
 5. Always show the compact lane cards, collapsed lane Mermaid graph, material collision warnings, and smallest next HITL decision directly in chat. Show task topology only for intentionally split lanes. Do not require an index click to understand what can run next or what needs human input. Do not inline every coding-agent prompt.
 6. Reuse the same output directory when the graph changes. The renderer preserves the first filename assigned to each stable task ID so existing links do not move.
 7. Do not automatically delete task files. Let system temporary storage expire, or ask before removing a user-selected durable directory.
+
+Every run must create `00-task-index.md`, one kebab-case Markdown file per task, and `.task-files.json`. Return the index link in conversation even for one task so navigation stays consistent across plans.
 
 Name user-facing files `<task-id-lower>-<task-summary-kebab>.md`, for example `api-01-add-authentication-endpoint.md`. Use lowercase ASCII kebab case, collapse repeated hyphens, remove punctuation, and limit the summary slug to 60 characters. Keep the canonical uppercase ID in the document heading. Name the navigator `00-task-index.md`.
 
@@ -168,4 +170,4 @@ Provide the following compact sections:
 
 State assumptions and confidence when file ownership or prerequisites are inferred. Keep the graph editable: incorporate human corrections, recompute indegrees, and preserve stable task IDs.
 
-In clickable task-file mode, put the full required output in the index and task files. In chat, lead with the paste-ready brief summary: plan status, lane counts, compact direct task links, and the lane-grouped Mermaid topology according to the size rules above. Then show material warnings and the next human decision. Keep the index as an optional final link, never the required starting point.
+Always put the full required output in the index and task files. In chat, lead with the paste-ready brief summary: plan status, lane counts, compact direct task links, and the lane-grouped Mermaid topology according to the size rules above. Then show material warnings, the next human decision, and the `00-task-index.md` link. Keep the index optional for understanding the plan, but always create and expose it.
