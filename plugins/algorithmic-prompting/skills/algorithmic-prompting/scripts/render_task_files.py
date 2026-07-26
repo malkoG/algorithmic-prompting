@@ -279,6 +279,7 @@ def render_placeholder(plan: dict, task: dict, lane: dict, ready: set[str]) -> s
 - Lane: {task['lane']}
 - Lane scope: {one_line(lane.get('scope'))}
 - Execution status: {status}
+- Plan stage: {one_line(plan.get('plan_stage'), 'detailed')}
 - Prompt status: detailing
 - Topology status: {one_line(plan.get('topology_status'), 'provisional')}
 - Prompt profile: {task_prompt_profile(plan, task)}
@@ -733,6 +734,7 @@ def render_conversation_summary(
 
     lines = [
         f"**Plan:** {one_line(plan.get('goal'), 'Task plan')}",
+        f"**Plan stage:** {one_line(plan.get('plan_stage'), 'detailed')}",
         f"**Status:** {status_line or 'No tasks'}",
         f"**Lanes:** {lane_line or 'None'}",
         f"**Prompt profile:** {profile_line}",

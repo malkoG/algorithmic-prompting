@@ -16,6 +16,7 @@ READY_STATUSES = {"planned", "ready"}
 VALID_STATUSES = READY_STATUSES | {"active", "completed", "integrated", "blocked"}
 PROMPT_PROFILES = {"lean", "balanced", "thorough"}
 TOPOLOGY_STATUSES = {"provisional", "reviewed"}
+PLAN_STAGES = {"routing", "detailed"}
 
 
 def fail(message: str) -> None:
@@ -50,6 +51,11 @@ def analyze(plan: dict) -> dict:
     topology_status = plan.get("topology_status", "provisional")
     if topology_status not in TOPOLOGY_STATUSES:
         fail(f"invalid topology_status: {topology_status}")
+    plan_stage = plan.get("plan_stage", "detailed")
+    if plan_stage not in PLAN_STAGES:
+        fail(f"invalid plan_stage: {plan_stage}")
+    if plan_stage == "routing" and modules:
+        fail("routing plans must defer modules to detail work")
 
     lane_ids: set[str] = set()
     for lane in lanes:
@@ -62,10 +68,22 @@ def analyze(plan: dict) -> dict:
             fail(f"duplicate lane id: {lane_id}")
         if not isinstance(lane.get("scope"), str) or not lane["scope"].strip():
             fail(f"missing non-empty scope for lane: {lane_id}")
-        for field in ("paths", "validation"):
+        for field in ("paths",):
             values = lane.get(field)
             if not isinstance(values, list) or not values or any(not isinstance(value, str) or not value.strip() for value in values):
                 fail(f"lane {lane_id} must have a non-empty string array for {field}")
+        validation = lane.get("validation")
+        if plan_stage == "detailed" and (
+            not isinstance(validation, list)
+            or not validation
+            or any(not isinstance(value, str) or not value.strip() for value in validation)
+        ):
+            fail(f"lane {lane_id} must have a non-empty string array for validation")
+        if validation is not None and (
+            not isinstance(validation, list)
+            or any(not isinstance(value, str) or not value.strip() for value in validation)
+        ):
+            fail(f"lane {lane_id} validation must contain only non-empty strings")
         lane_ids.add(lane_id)
 
     modules_by_id: dict[str, dict] = {}
@@ -113,12 +131,20 @@ def analyze(plan: dict) -> dict:
         status = task.get("status", "planned")
         if status not in VALID_STATUSES:
             fail(f"invalid status for {task_id}: {status}")
+        if not isinstance(task.get("title"), str) or not task["title"].strip():
+            fail(f"missing non-empty title for {task_id}")
         task_profile = task.get("prompt_profile", plan_profile)
         if task_profile not in PROMPT_PROFILES:
             fail(f"invalid prompt_profile for {task_id}: {task_profile}")
         prompt_seed = task.get("prompt_seed", task.get("draft_prompt"))
-        if not isinstance(prompt_seed, str) or not prompt_seed.strip():
+        if plan_stage == "detailed" and (
+            not isinstance(prompt_seed, str) or not prompt_seed.strip()
+        ):
             fail(f"missing non-empty prompt_seed for {task_id}")
+        if prompt_seed is not None and (
+            not isinstance(prompt_seed, str) or not prompt_seed.strip()
+        ):
+            fail(f"prompt_seed for {task_id} must be a non-empty string when present")
         by_id[task_id] = task
 
     successors: dict[str, list[str]] = defaultdict(list)

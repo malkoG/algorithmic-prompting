@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
   "author": {
     "name": "Jaeyeol Lee",
@@ -10,12 +10,12 @@
   "interface": {
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Turn a goal into parallel, commit-ready work.",
-    "longDescription": "Build a fast provisional topology from repository maps, return the task index first, then let concurrent subagents verify implementation and land bounded coding-agent prompts independently.",
+    "longDescription": "Route work from intentionally structured repository layout, publish a minimal provisional index before implementation comprehension, then let concurrent subagents land thoroughly researched coding-agent prompts.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
       "Turn goals into executable work plans",
-      "Build a map-first provisional topology",
+      "Build a layout-first routing topology",
       "Surface parallel work and prerequisites",
       "Create a clickable task index",
       "Choose lean, balanced, or thorough prompt depth",
@@ -23,6 +23,6 @@
       "Land bounded coding-agent prompts asynchronously",
       "Guide commit and integration handoffs"
     ],
-    "defaultPrompt": "Turn this goal into a dependency-aware plan using a fast map-first scan of repository instructions, design and convention documents, schemas, contracts, build metadata, and file structure. Return the provisional task index first. Use subagents for thorough implementation verification and independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch."
+    "defaultPrompt": "Turn this goal into a dependency-aware routing plan from repository instructions and intentionally structured layout only. Use lean prompts unless requested otherwise. Do not inspect implementation, tests, SDK, or UI before returning the provisional task index. Then dispatch concurrent prompt-detail subagents for thorough comprehension and return immediately after dispatch."
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: algorithmic-prompting
-description: Turn a software goal into a dependency-aware plan with parallel work lanes, atomic commit units, an immediate clickable task index, asynchronously landed coding-agent prompts, and human-approved integration guidance. Use for implementation planning, specs, ADRs, issue breakdowns, parallel agent work, worktree coordination, or merge sequencing.
+description: Route a software goal through an intentionally structured repository layout into provisional parallel work lanes, publish an immediate task index, then use concurrent subagents for thorough task comprehension and independently landed coding-agent prompts. Use for implementation planning, specs, ADRs, issue breakdowns, parallel agent work, worktree coordination, or merge sequencing.
 ---
 
 # Algorithmic Prompting
@@ -11,35 +11,28 @@ Turn a goal into work that coding agents can execute and a human can control.
 
 ```text
 Goal
-└── Lanes — work that can proceed independently
-    └── Commit units — one task, one prompt, one commit
+└── Layout-first routing — where to investigate
+    └── Concurrent detail — how the system works
+        └── Commit units — one task, one prompt, one commit
 
 Dependencies determine what is ready next.
 ```
 
 Derive lane names from the project. Do not impose a fixed technology or product taxonomy.
 
-## Build the plan
+## Route before comprehending
 
-1. Run the map-first scan in [references/map-first-scan.md](references/map-first-scan.md). Start with repository instructions, design and convention documents, schemas and contracts, build metadata, and file structure.
-2. Choose the fewest broad lanes that expose safe parallel work. Give each lane a clear input, ownership boundary, validation profile, and mergeable output.
-3. Split each lane into the fewest atomic commit units that make the history understandable and revertible, usually one to three.
-4. Give every unit a stable `<LANE>-<NN>` coordination ID and a human-readable commit intent.
-5. Add a hard edge only when the successor cannot pass its completion gate without the predecessor.
-6. Record likely file overlap as a collision, not automatically as a dependency.
-7. Reject cycles. If a collapsed lane graph cycles, merge coupled lanes or isolate a small shared prerequisite.
+Read [references/layout-first-routing.md](references/layout-first-routing.md) and the compact [references/plan-schema.md](references/plan-schema.md), then:
 
-Keep this scan compact and mark its topology `provisional`. Read at most one implementation anchor per unclear lane; defer task-local code comprehension and graph verification to detail subagents. Record a short `prompt_seed` for each task rather than producing its complete prompt during the scan.
+1. Read the request and repository instructions.
+2. Run one file inventory. Use directory, module, package, map-document, schema-entity, workspace, and build-boundary names as routing evidence.
+3. Choose the fewest broad ownership lanes. Create one `<LANE>-<NN>` task shell per independently investigated area by default.
+4. Add only prerequisite edges stated by the request or explicit in the structured layout. Leave uncertain edges and collisions for detail subagents.
+5. Persist a `routing` plan with `provisional` topology and validate it with `scripts/graph_ready.py <plan.json>`.
 
-## Choose prompt depth
+Before publishing the index, do not inspect implementation files, tests, SDK internals, UI internals, or complete design and schema documents. Do not determine exact files, validation, acceptance criteria, completion gates, branches, or prompt guidance. The coordinator routes investigation; it does not perform implementation comprehension.
 
-Use `lean` unless the human asks otherwise. `balanced` adds task-local context for ambiguous work; `thorough` is for high-risk work such as security, migrations, and compatibility changes. A task may override the plan default.
-
-Follow [references/prompt-profiles.md](references/prompt-profiles.md). Detail agents return only a compact task delta; the renderer adds the shared execution contract.
-
-Keep implementation and focused tests in the same commit unit. Do not create separate nodes for routine steps, individual files, formatting, or generated output unless they are independently valuable.
-
-Use [references/plan-schema.md](references/plan-schema.md) for the persisted plan. Run `scripts/graph_ready.py <plan.json>` to validate it and calculate ready lanes and tasks.
+Use `lean` unless the human names another profile. Do not read prompt-depth or coding-agent references during routing.
 
 ## Publish the index immediately
 
@@ -49,14 +42,14 @@ Persist the compact plan outside the repository unless the human requests a dura
 scripts/render_task_files.py <plan.json> --placeholders [--output-dir <existing-directory>]
 ```
 
-This must create `00-task-index.md`, `.task-files.json`, and one lightweight task file per stable kebab-case filename. Paste the compact conversation summary and index link before dispatching detail jobs.
+This must create `00-task-index.md`, `.task-files.json`, and one lightweight task file per stable kebab-case filename. Paste the compact conversation summary and index link before reading detail instructions or dispatching subagents.
 
 ## Let complete prompts land independently
 
-Follow [references/detail-agent-contract.md](references/detail-agent-contract.md). Use subagents for the independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch.
+Only after publishing the index, read [references/detail-agent-contract.md](references/detail-agent-contract.md). If a non-lean profile was requested, also read [references/prompt-profiles.md](references/prompt-profiles.md). Use subagents for the independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch.
 
 1. Spawn one subagent per prompt-detail task after all placeholders exist. Each subagent owns only its assigned detail result and task file.
-2. Give each job the shared plan path, output directory, its task ID, prompt profile, lane contract, repository guidance, map evidence, hard prerequisites, collision hints, and likely paths. Prefer bounded task-local context over full conversation history.
+2. Give each job the shared routing-plan path, output directory, its task ID, prompt profile, lane scope, repository guidance, visible layout evidence, and explicit prerequisites. Prefer bounded task-local context over full conversation history.
 3. Have each subagent verify the provisional map against actual implementation and inspect deeply enough for thorough task comprehension. Keep detail work read-only with respect to the repository; do not implement code, create branches or worktrees, or commit changes.
 4. Have each job write one structured detail result to a unique temporary path, then run:
 
@@ -68,7 +61,7 @@ scripts/land_task_detail.py <plan.json> <detail.json> --output-dir <task-directo
 6. Dispatch all prompt-detail subagents concurrently. After every dispatch is accepted, return immediately. Do not wait for their messages or perform a fan-in.
 7. If subagents cannot continue after return, keep the placeholders and report that asynchronous dispatch is unavailable. Do not silently turn the request into a blocking workflow.
 
-Prompt-detail jobs may run concurrently even when implementation tasks have hard dependencies. Their prompts describe those dependencies; they do not execute the work. Newly discovered graph proposals and uncertainties stay in the landed task file for later human integration.
+Prompt-detail jobs may run concurrently even when implementation tasks have hard dependencies. Their prompts describe those dependencies; they do not execute the work. Detail subagents determine exact scope, likely files, validation, acceptance criteria, risks, and prompt guidance. Newly discovered graph proposals and uncertainties stay in the landed task file for later human integration.
 
 Reuse the same output directory when the plan changes. Placeholder rendering must not overwrite task files that have already landed.
 
@@ -95,7 +88,7 @@ The branch and full SHA identify work for integration. A worktree name or path d
 
 ## Prepare coding-agent prompts
 
-Create one complete prompt per commit unit through its detail job and landing script. [references/coding-agent-prompt.md](references/coding-agent-prompt.md) is the source contract for the compiled prompt. In `lean`, keep the task file focused on the compiled prompt instead of duplicating its sections around it.
+Create one complete prompt per commit unit through its detail job and landing script. The landing script owns the full compiled-prompt contract; the coordinator must not read or reproduce that contract during routing. In `lean`, keep the task file focused on the compiled prompt instead of duplicating its sections around it.
 
 Each prompt must state:
 
