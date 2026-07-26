@@ -1,4 +1,4 @@
 interface:
   display_name: "Algorithmic Prompting"
   short_description: "Plan dependency graphs and bounded agent prompts"
-  default_prompt: "Use $algorithmic-prompting to partition this goal into architecture lanes, show a compact Mermaid dependency graph in conversation, and coordinate HITL execution with clickable task files."
+  default_prompt: "Use $algorithmic-prompting to partition this goal into architecture lanes, show a compact Mermaid dependency graph, and guide manual Kahn execution through natural-language start and merge decisions."

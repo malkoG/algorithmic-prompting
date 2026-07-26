@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Partition work into architecture lanes, show dependency topology in conversation, and navigate large plans through clickable task files.",
   "author": {
     "name": "Jaeyeol Lee",
@@ -32,6 +32,6 @@
       "Worktree scheduling",
       "HITL Kahn coordination"
     ],
-    "defaultPrompt": "Partition this goal into architecture lanes, show a compact Mermaid dependency graph in conversation, draft a coding-agent prompt for every subtask, and propose the next human-approved parallel worktree batch."
+    "defaultPrompt": "Partition this goal into architecture lanes, show a compact Mermaid dependency graph, draft a coding-agent prompt for every subtask, and guide manual Kahn execution through natural-language start and merge decisions."
   }
 }
