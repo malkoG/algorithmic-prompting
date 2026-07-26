@@ -1,4 +1,4 @@
 interface:
   display_name: "Algorithmic Prompting"
-  short_description: "Plan lanes, atomic commits, and task files"
-  default_prompt: "Use $algorithmic-prompting to plan broad parallel lanes and atomic commit units, always create and link a temporary task index plus one kebab-case file per task, and guide manual Kahn execution."
+  short_description: "Turn goals into parallel, commit-ready work"
+  default_prompt: "Use $algorithmic-prompting to turn this goal into a dependency-aware plan, show what can run in parallel, create the task index and agent prompts, and guide commit and integration decisions."

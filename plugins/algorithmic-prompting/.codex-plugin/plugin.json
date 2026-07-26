@@ -1,7 +1,7 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.4.3",
-  "description": "Plan parallel lanes and atomic commits with a consistent clickable task index for every plan.",
+  "version": "0.4.4",
+  "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
   "author": {
     "name": "Jaeyeol Lee",
     "email": "jaeyeol.lee@hey.com"
@@ -9,25 +9,17 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Algorithmic Prompting",
-    "shortDescription": "Plan parallel worktrees and draft bounded agent prompts.",
-    "longDescription": "Partition implementation goals into broad parallel lanes and atomic commit units; map every task one-to-one to a commit and coding-agent prompt; always create a temporary clickable task index and kebab-case task files regardless of plan size; derive lane and commit DAGs; and advance work through human-approved Kahn scheduling.",
+    "shortDescription": "Turn a goal into parallel, commit-ready work.",
+    "longDescription": "Given a software goal and repository, create a task index, dependency graph, ready work batches, bounded coding-agent prompts, and commit and merge handoffs for human-approved parallel execution.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
-      "Dependency graph planning",
-      "Architecture lane partitioning",
-      "Broad execution-lane decomposition",
-      "Minimal task splitting",
-      "Atomic commit-wise decomposition",
-      "Lane-level Kahn scheduling",
-      "One structured commit per dispatched task",
-      "Conversation-ready Mermaid topology",
-      "Clickable task-file navigation",
-      "Always-on task index",
-      "Coding-agent prompt drafting",
-      "Worktree scheduling",
-      "HITL Kahn coordination"
+      "Turn goals into executable work plans",
+      "Surface parallel work and prerequisites",
+      "Create a clickable task index",
+      "Draft bounded coding-agent prompts",
+      "Guide commit and integration handoffs"
     ],
-    "defaultPrompt": "Partition this goal into broad parallel lanes and atomic commit-sized tasks, always create and link a temporary task index plus one kebab-case file per task, map every task one-to-one to an outcome-based commit without internal graph IDs, and guide manual Kahn execution."
+    "defaultPrompt": "Turn this goal into a dependency-aware plan, show what can run in parallel, create the task index and coding-agent prompts, and guide me through commit and integration decisions."
   }
 }

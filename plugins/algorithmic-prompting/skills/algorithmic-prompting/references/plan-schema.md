@@ -1,141 +1,108 @@
 # Plan JSON schema
 
-Use this compact shape when a persistent or script-validated plan is useful:
+Use this shape when persisting a plan. Replace the neutral lane names with boundaries from the project.
 
 ```json
 {
-  "goal": "Ship the requested change",
-  "goal_slug": "authentication",
+  "goal": "Deliver the requested change",
+  "goal_slug": "requested-change",
   "lanes": [
     {
-      "id": "API",
-      "scope": "Server endpoints and contracts",
-      "input": "Approved authentication contract",
-      "paths": ["api/**"],
-      "output": "Tested authentication endpoint",
-      "validation": ["run API tests"],
-      "base_branch": "feature/authentication",
-      "assigned_branch": "task/authentication/api"
+      "id": "PART1",
+      "scope": "First independent responsibility",
+      "input": "Accepted requirements",
+      "paths": ["path/owned/by/part-one/**"],
+      "output": "Validated first output",
+      "validation": ["run checks for the first responsibility"],
+      "base_branch": "main",
+      "assigned_branch": "task/requested-change/part1"
     },
     {
-      "id": "SDK",
-      "scope": "Client library and exported types",
-      "input": "Approved authentication contract",
-      "paths": ["sdk/**"],
-      "output": "Tested authentication client",
-      "validation": ["run SDK tests"],
-      "base_branch": "feature/authentication",
-      "assigned_branch": "task/authentication/sdk"
+      "id": "PART2",
+      "scope": "Second independent responsibility",
+      "input": "Accepted requirements",
+      "paths": ["path/owned/by/part-two/**"],
+      "output": "Validated second output",
+      "validation": ["run checks for the second responsibility"],
+      "base_branch": "main",
+      "assigned_branch": "task/requested-change/part2"
     },
     {
-      "id": "WEB",
-      "scope": "Browser UI and interactions",
-      "input": "Approved UI behavior and authentication contract",
-      "paths": ["web/**"],
-      "output": "Connected sign-in flow",
-      "validation": ["run sign-in UI tests"],
-      "base_branch": "feature/authentication",
-      "assigned_branch": "task/authentication/web"
-    },
-    {
-      "id": "INT",
-      "scope": "Cross-layer authentication verification",
-      "input": "Integrated API, SDK, and Web lane outputs",
-      "paths": ["tests/integration/auth/**"],
-      "output": "Verified end-to-end authentication flow",
-      "validation": ["run authentication integration tests"],
-      "base_branch": "feature/authentication",
-      "assigned_branch": "task/authentication/int"
+      "id": "VERIFY",
+      "scope": "Combined verification",
+      "input": "Integrated outputs from PART1 and PART2",
+      "paths": ["path/owned/by/verification/**"],
+      "output": "Verified combined result",
+      "validation": ["run combined checks"],
+      "base_branch": "main",
+      "assigned_branch": "task/requested-change/verify"
     }
   ],
   "tasks": [
     {
-      "id": "API-01",
-      "lane": "API",
-      "title": "Validate authentication requests",
-      "commit_intent": "Validate authentication requests",
+      "id": "PART1-01",
+      "lane": "PART1",
+      "title": "Produce the first atomic outcome",
+      "commit_intent": "Produce the first atomic outcome",
       "status": "planned",
-      "files": ["api/auth.ts", "api/auth.test.ts"],
-      "validation": ["run focused request-validation tests"],
-      "completion_gate": "Request-validation tests pass",
-      "assigned_branch": "task/authentication/api",
-      "draft_prompt": "Implement API-01 in the API lane..."
+      "files": ["path/owned/by/part-one/**"],
+      "validation": ["run focused checks"],
+      "completion_gate": "Focused checks pass",
+      "assigned_branch": "task/requested-change/part1",
+      "draft_prompt": "Complete the first atomic outcome and its focused validation."
     },
     {
-      "id": "API-02",
-      "lane": "API",
-      "title": "Issue authenticated sessions",
-      "commit_intent": "Issue authenticated sessions",
+      "id": "PART2-01",
+      "lane": "PART2",
+      "title": "Produce the second atomic outcome",
+      "commit_intent": "Produce the second atomic outcome",
       "status": "planned",
-      "files": ["api/auth.ts", "api/auth.test.ts"],
-      "validation": ["run focused session tests"],
-      "completion_gate": "Session issuance tests pass",
-      "assigned_branch": "task/authentication/api",
-      "draft_prompt": "Implement API-02 after API-01 on the API lane branch..."
+      "files": ["path/owned/by/part-two/**"],
+      "validation": ["run focused checks"],
+      "completion_gate": "Focused checks pass",
+      "assigned_branch": "task/requested-change/part2",
+      "draft_prompt": "Complete the second atomic outcome and its focused validation."
     },
     {
-      "id": "SDK-01",
-      "lane": "SDK",
-      "title": "Add the authentication client",
-      "commit_intent": "Add the authentication client",
+      "id": "VERIFY-01",
+      "lane": "VERIFY",
+      "title": "Verify the combined result",
+      "commit_intent": "Verify the combined result",
       "status": "planned",
-      "files": ["sdk/auth.ts"],
-      "validation": ["run focused SDK tests"],
-      "completion_gate": "SDK authentication tests pass",
-      "assigned_branch": "task/authentication/sdk",
-      "draft_prompt": "Implement SDK-01 in the SDK lane after API-01 is available..."
-    },
-    {
-      "id": "WEB-01",
-      "lane": "WEB",
-      "title": "Connect the sign-in form",
-      "commit_intent": "Connect the sign-in form",
-      "status": "planned",
-      "files": ["web/sign-in.tsx"],
-      "validation": ["run focused sign-in UI tests"],
-      "completion_gate": "Sign-in UI tests pass",
-      "assigned_branch": "task/authentication/web",
-      "draft_prompt": "Implement the complete WEB lane using the approved contract..."
-    },
-    {
-      "id": "INT-01",
-      "lane": "INT",
-      "title": "Verify the integrated authentication flow",
-      "commit_intent": "Verify the integrated authentication flow",
-      "status": "planned",
-      "files": ["tests/integration/auth/**"],
-      "validation": ["run authentication integration tests"],
-      "completion_gate": "End-to-end authentication tests pass",
-      "assigned_branch": "task/authentication/int",
-      "draft_prompt": "Verify the integrated API, SDK, and Web lane outputs..."
+      "files": ["path/owned/by/verification/**"],
+      "validation": ["run combined checks"],
+      "completion_gate": "Combined checks pass",
+      "assigned_branch": "task/requested-change/verify",
+      "draft_prompt": "Verify the integrated outputs."
     }
   ],
   "dependencies": [
-    {"from": "API-01", "to": "API-02", "reason": "Session issuance builds on request validation"},
-    {"from": "API-02", "to": "INT-01", "reason": "Integration consumes the API output"},
-    {"from": "SDK-01", "to": "INT-01", "reason": "Integration consumes the SDK output"},
-    {"from": "WEB-01", "to": "INT-01", "reason": "Integration consumes the Web output"}
+    {
+      "from": "PART1-01",
+      "to": "VERIFY-01",
+      "reason": "Combined verification consumes the first output"
+    },
+    {
+      "from": "PART2-01",
+      "to": "VERIFY-01",
+      "reason": "Combined verification consumes the second output"
+    }
   ],
   "collisions": []
 }
 ```
 
-## Field rules
+## Rules
 
-- Define a small number of broad lanes. Give each lane a unique uppercase alphanumeric `id`, input, scope, owned paths or components, output, validation profile, base branch, and assigned child branch.
-- Treat each lane as the default worktree and merge unit. Split it into the fewest atomic commit units that make the history reviewable and revertible, usually one to three.
-- Map every task one-to-one to a commit and record a human-readable `commit_intent` without its coordination ID. Split for independently meaningful behavior, a prerequisite, owner handoff, merge or rollback boundary, or validation gate—not for routine steps or individual files.
-- Keep implementation and its focused tests together. Avoid standalone scaffolding, formatting, generated-output, or test-only commits unless independently valuable.
-- Add `modules` only when one lane contains multiple independently mergeable outputs. Give each module a stable uppercase kebab ID, one lane, an input contract, ownership, validation, and output. When modules exist, assign every task to one in the same lane.
-- Keep task IDs unique and stable in `<LANE>-<NN>` form. The task's `lane` must match its ID prefix and reference a declared lane.
-- Use `CORE` for a plan where no meaningful multi-lane partition exists.
-- Express prerequisites only in `dependencies`; scripts derive the lane and optional module DAGs by collapsing task edges.
-- Derive the module DAG by collapsing cross-module task dependencies. Do not duplicate those edges in a separate module dependency list.
-- Derive lane branches as `task/<goal-slug>/<lane-id-lower>` and validate the final Git ref before dispatch. Use a task suffix only for an intentionally separate task worktree.
-- Give every task a non-empty `draft_prompt` that follows `coding-agent-prompt.md`. The approved dispatch prompt must end successful work with one focused commit whose outcome-based subject and bullet body omit internal graph identifiers.
-- Use statuses `planned`, `ready`, `active`, `completed`, `integrated`, or `blocked`.
-- Treat `completed` and `integrated` tasks as removed for Kahn indegree calculations. Choose `integrated` when downstream tasks require the result on their base branch.
-- Represent prerequisites only in `dependencies`. Each edge is directed from prerequisite to successor.
-- Represent file overlap and merge risk only in `collisions`; these do not affect indegrees.
-- Omit `integration_order` when the order needs a human decision.
-- Keep dependency and collision reasons specific enough for review.
+- Lane IDs are unique uppercase alphanumeric names derived from project boundaries.
+- Each lane has a scope, predicted paths or components, validation profile, input, and output.
+- Task IDs use `<LANE>-<NN>` and reference a declared lane.
+- Each task maps to one atomic commit and has a commit intent, validation, completion gate, and draft prompt.
+- Status is `planned`, `ready`, `active`, `completed`, `integrated`, or `blocked`.
+- Dependencies point from prerequisite to successor.
+- Only incomplete prerequisite edges contribute to readiness. `completed` and `integrated` predecessors are removed.
+- Collisions describe overlap or merge risk and do not change indegrees.
+- Use one branch and worktree per lane by default. Use a task-specific branch only for independently dispatched work.
+- Optional modules may group multiple mergeable outputs inside a large lane. When modules exist, every task references a module in the same lane.
+- Derive lane and optional module graphs from task dependencies; do not duplicate edges.
+- Omit unresolved integration order and ask the human instead.

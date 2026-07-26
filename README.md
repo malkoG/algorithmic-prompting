@@ -1,62 +1,41 @@
 # Algorithmic Prompting
 
-A ChatGPT and Codex plugin for decomposing implementation goals into a few broad, independently mergeable execution lanes, then coordinating parallel worktrees with human-in-the-loop Kahn scheduling.
+Turn a software goal into parallel, commit-ready work that coding agents can execute and a human can control.
 
-## Highlights
-
-- Architecture lanes such as `API`, `WEB`, and `SDK`
-- Broad lanes with input, ownership, validation, and output contracts
-- One worktree and branch per lane, with usually one to three atomic commit units
-- A collapsed lane DAG with intentionally sparse dependencies
-- Minimal task splitting: only for real prerequisite, ownership, merge, rollback, or validation boundaries
-- One-to-one mapping from task nodes to reviewable and revertible commits
-- Implementation and focused tests stay in the same commit unit
-- Stable lane-aware task IDs
-- Hard dependency DAGs and file-collision constraints
-- Conversation-ready Mermaid topology
-- Draft coding-agent prompt for every subtask
-- `00-task-index.md` and kebab-case task files for every plan, including one-task plans
-- Human-approved worktree, branch, commit, and merge coordination
-- Exactly one focused commit per dispatched task, with no internal graph IDs
-- Outcome-based commit subjects followed by two to four bullet lines
-
-## Compact lane prompt
+## Mental model
 
 ```text
-Lane: API
-Input: approved auth contract
-Owns: api/auth/**
-Commits: verify credentials → issue sessions
-Output: authenticated endpoint
-Merge: task/authentication/api @ <full commit SHA> → feature/authentication
-Next: SDK, WEB
+Goal
+└── Lanes — work that can proceed independently
+    └── Commit units — one task, one prompt, one commit
+
+Dependencies determine what is ready next.
 ```
 
-Successful task commits use this shape:
+Lane names come from the project rather than a fixed technology or product taxonomy.
 
-```text
-Add authenticated session handling
+## What you get
 
-- Validate credentials and issue session tokens
-- Preserve existing rejection behavior
-- Cover successful and rejected sign-in flows
-```
+- A clickable task index for every plan
+- A dependency graph showing parallel and waiting work
+- One bounded coding-agent prompt per commit unit
+- Clear start, commit, and integration handoffs
 
-## Install from GitHub
+## Workflow
 
-Add this repository as a marketplace:
+1. Describe the goal or provide a spec.
+2. Review the proposed lanes, commit units, and dependencies.
+3. Approve the next ready batch.
+4. Integrate completed commits and continue with newly ready work.
+
+## Install
 
 ```sh
 codex plugin marketplace add malkoG/algorithmic-prompting
-```
-
-Install the plugin:
-
-```sh
 codex plugin add algorithmic-prompting@malkog-plugins
 ```
 
-Start a new ChatGPT or Codex conversation after installation so the bundled skill is loaded.
+Start a new ChatGPT or Codex conversation after installation.
 
 ## Update
 
@@ -64,14 +43,3 @@ Start a new ChatGPT or Codex conversation after installation so the bundled skil
 codex plugin marketplace upgrade malkog-plugins
 codex plugin add algorithmic-prompting@malkog-plugins
 ```
-
-## Repository layout
-
-```text
-.agents/plugins/marketplace.json
-plugins/algorithmic-prompting/
-├── .codex-plugin/plugin.json
-└── skills/algorithmic-prompting/
-```
-
-The repository marketplace is intended for Git-based installation and team distribution. It is separate from the universal public Plugins Directory.
