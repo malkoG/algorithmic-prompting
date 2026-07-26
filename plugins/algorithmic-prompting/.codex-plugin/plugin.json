@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Partition work into architecture lanes, show dependency topology in conversation, and navigate large plans through clickable task files.",
   "author": {
     "name": "Jaeyeol Lee",

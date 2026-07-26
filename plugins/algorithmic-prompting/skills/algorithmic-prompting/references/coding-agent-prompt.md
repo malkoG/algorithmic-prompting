@@ -17,15 +17,12 @@ Outcome
 Context
 <Only the repository, product, and design context needed for this task.>
 
-Readiness and workspace
-- Status: <ready | waiting on named prerequisites>
-- Prerequisites: <task IDs and the artifact or behavior they provide>
-- Base branch: <parent integration branch | coordinator will assign>
-- Base SHA: <exact commit | coordinator will assign>
-- Assigned child branch: <task/goal-slug/task-id-lower-task-slug | coordinator will assign>
-- Worktree: <assigned path or managed worktree | coordinator will assign>
-- Branch creation: <not authorized in draft | create the exact assigned branch | branch already created by coordinator>
-- Base/integration strategy: <shared base | stacked on task ID | pending human decision>
+Dispatch
+- Ready: <yes | no — waiting for task IDs and required outputs>
+- Base: <parent integration branch @ exact commit | coordinator assigns>
+- Branch: <task/goal-slug/task-id-lower-task-slug | coordinator will assign>
+- Worktree: <assigned path | managed worktree | coordinator assigns>
+- Branch creation: <not authorized | authorized for the exact assigned branch | already created>
 
 Branch setup
 - Inspect the current branch and `HEAD` before editing.
@@ -66,6 +63,7 @@ Create the requested focused commit only when commit authorization is present. R
 - Distinguish predicted files from a strict file allowlist.
 - Mention every hard predecessor and every known collision relevant to the task.
 - Do not claim a task is ready merely because its draft prompt exists.
+- Keep dispatch metadata compact. Combine readiness and prerequisites on one line, combine the base branch and exact SHA on one line, and omit the ordinary shared-base strategy. Mention a stacked base or unresolved integration choice only when it materially changes execution.
 - Keep planning-time prompts non-mutating. Add branch-creation and commit authorization only after the human approves dispatch.
 - Allocate child names in a separate namespace as `task/<goal-slug>/<task-id-lower>-<task-slug>`. The lane is already encoded in IDs such as `API-01`, `WEB-01`, and `SDK-01`. Never create `<base-branch>/<task>` when `<base-branch>` already exists.
 - Include an exact base SHA whenever branch creation is authorized. Do not allow the worker to choose a substitute base or alternate branch name.
@@ -77,13 +75,16 @@ Create the requested focused commit only when commit authorization is present. R
 For parent branch `feature/authentication` at `abc123`, assign API task `API-01` a child such as `task/authentication/api-01-add-endpoint`, not `feature/authentication/api-01`.
 
 ```text
-Branch setup authorization
-- Lane: API
-- Lane validation profile: run API tests
-- Base branch: feature/authentication
-- Base SHA: abc123
-- Assigned child branch: task/authentication/api-01-add-endpoint
-- You are authorized to create exactly this child branch if this managed worktree is detached at abc123.
+Dispatch
+- Ready: yes
+- Base: feature/authentication @ abc123
+- Branch: task/authentication/api-01-add-endpoint
+- Worktree: managed worktree
+- Branch creation: authorized only if detached at abc123
+
+Lane validation profile: run API tests.
+
+- You are authorized to create exactly the assigned child branch if this managed worktree is detached at abc123.
 - If already on task/authentication/api-01-add-endpoint, continue without creating another branch.
 - Otherwise, stop and report the mismatch.
 

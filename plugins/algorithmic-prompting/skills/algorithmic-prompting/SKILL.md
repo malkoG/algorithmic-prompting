@@ -48,6 +48,8 @@ Each prompt must include:
 - Acceptance criteria and the lane-specific validation profile plus proportionate task checks.
 - A handoff contract requiring a concise summary of changes, files touched, tests run, results, assumptions, and remaining risks.
 
+Keep workspace metadata in one compact `Dispatch` block. Combine readiness with any blocking prerequisites, combine the base branch with the exact base SHA, and use short `Branch`, `Worktree`, and `Branch creation` fields. Omit the default shared-base strategy; mention stacking or an unresolved integration choice only when it changes execution.
+
 Tell the coding agent to work only on the assigned subtask, preserve unrelated user changes, follow repository instructions, and stop to report a missing prerequisite or materially expanded scope. A planning-time draft must not authorize branch creation. After HITL approves dispatch, the final prompt may authorize creation of exactly one assigned child branch from an exact base SHA; it must not authorize any alternate branch, merging, pushing, or unrelated cleanup. Never hide unresolved HITL choices inside a prompt; label them for the human before dispatch.
 
 ## Use clickable task files for large plans
