@@ -1,0 +1,37 @@
+{
+  "name": "algorithmic-prompting",
+  "version": "0.2.2",
+  "description": "Partition work into architecture lanes, show dependency topology in conversation, and navigate large plans through clickable task files.",
+  "author": {
+    "name": "Jaeyeol Lee",
+    "email": "jaeyeol.lee@hey.com",
+    "url": "https://github.com/malkoG"
+  },
+  "homepage": "https://github.com/malkoG/algorithmic-prompting",
+  "repository": "https://github.com/malkoG/algorithmic-prompting",
+  "keywords": [
+    "dependency-graph",
+    "coding-agents",
+    "git-worktrees",
+    "parallel-development",
+    "human-in-the-loop"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Algorithmic Prompting",
+    "shortDescription": "Plan parallel worktrees and draft bounded agent prompts.",
+    "longDescription": "Partition implementation goals into architecture lanes such as API, WEB, and SDK; show a compact Mermaid dependency topology in conversation; draft a coding-agent prompt for every subtask; navigate large plans through clickable temporary Markdown files; distinguish hard prerequisites from merge risks; and advance ready work through human-approved Kahn scheduling.",
+    "developerName": "Jaeyeol Lee",
+    "category": "Productivity",
+    "capabilities": [
+      "Dependency graph planning",
+      "Architecture lane partitioning",
+      "Conversation-ready Mermaid topology",
+      "Clickable task-file navigation",
+      "Coding-agent prompt drafting",
+      "Worktree scheduling",
+      "HITL Kahn coordination"
+    ],
+    "defaultPrompt": "Partition this goal into architecture lanes, show a compact Mermaid dependency graph in conversation, draft a coding-agent prompt for every subtask, and propose the next human-approved parallel worktree batch."
+  }
+}
