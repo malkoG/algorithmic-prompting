@@ -1,8 +1,16 @@
-# Algorithmic Prompting
+# Squire
+
+Human-controlled agent workflows by Jaeyeol Lee.
+
+## Why Squire
+
+A squire traditionally prepared equipment, carried messages, and supported a knight throughout a campaign while the knight retained command. Squire brings that relationship to agent workflows: its plugins prepare the field, coordinate specialized agents, and surface decisions while the human remains in control.
+
+## Plugins
+
+### Algorithmic Prompting
 
 Turn a software goal into parallel, commit-ready work that coding agents can execute and a human can control.
-
-Part of **Squire** by Jaeyeol Lee.
 
 ## Mental model
 
