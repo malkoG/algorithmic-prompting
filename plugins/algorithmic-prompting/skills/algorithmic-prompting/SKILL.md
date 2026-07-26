@@ -1,6 +1,6 @@
 ---
 name: algorithmic-prompting
-description: Route a software goal through an intentionally structured repository layout into provisional parallel work lanes, publish an immediate task index, then use concurrent subagents for thorough task comprehension and independently landed coding-agent prompts. Use for implementation planning, specs, ADRs, issue breakdowns, parallel agent work, worktree coordination, or merge sequencing.
+description: Route a software goal through an intentionally structured repository layout into provisional parallel work lanes, publish an immediate task index, then asynchronously build both task-local coding prompts and a whole-system overview for later human-controlled reconciliation. Use for implementation planning, specs, ADRs, issue breakdowns, parallel agent work, worktree coordination, reconciliation, or merge sequencing.
 ---
 
 # Algorithmic Prompting
@@ -11,12 +11,15 @@ Turn a goal into work that coding agents can execute and a human can control.
 
 ```text
 Goal
-└── Layout-first routing — where to investigate
-    └── Concurrent detail — how the system works
-        └── Commit units — one task, one prompt, one commit
+└── Fast routing → task index and provisional DAG
+    ├── N task-detail jobs → local coding prompts
+    └── 1 system-overview job → global understanding
+        └── Later reconciliation → reviewed graph and prompts
 
 Dependencies determine what is ready next.
 ```
+
+Both asynchronous views feed the later main-thread reconciliation.
 
 Derive lane names from the project. Do not impose a fixed technology or product taxonomy.
 
@@ -42,11 +45,11 @@ Persist the compact plan outside the repository unless the human requests a dura
 scripts/render_task_files.py <plan.json> --placeholders [--output-dir <existing-directory>]
 ```
 
-This must create `00-task-index.md`, `.task-files.json`, and one lightweight task file per stable kebab-case filename. Paste the compact conversation summary and index link before reading detail instructions or dispatching subagents.
+This must create `00-task-index.md`, `00-system-overview.md`, `00-reconciliation.md`, `.task-files.json`, and one lightweight task file per stable kebab-case filename. Paste the compact conversation summary and index link before reading detail instructions or dispatching subagents.
 
 ## Let complete prompts land independently
 
-Only after publishing the index, read [references/detail-agent-contract.md](references/detail-agent-contract.md). If a non-lean profile was requested, also read [references/prompt-profiles.md](references/prompt-profiles.md). Use subagents for the independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch.
+Only after publishing the index, read [references/detail-agent-contract.md](references/detail-agent-contract.md) and [references/overview-agent-contract.md](references/overview-agent-contract.md). If a non-lean profile was requested, also read [references/prompt-profiles.md](references/prompt-profiles.md). Dispatch one subagent per task detail plus one whole-system overview subagent concurrently, then return immediately.
 
 1. Spawn one subagent per prompt-detail task after all placeholders exist. Each subagent owns only its assigned detail result and task file.
 2. Give each job the shared routing-plan path, output directory, its task ID, prompt profile, lane scope, repository guidance, visible layout evidence, and explicit prerequisites. Prefer bounded task-local context over full conversation history.
@@ -58,12 +61,19 @@ scripts/land_task_detail.py <plan.json> <detail.json> --output-dir <task-directo
 ```
 
 5. Let the landing script atomically replace only that task's placeholder and persist its detail result. Detail jobs must never edit `00-task-index.md`, `.task-files.json`, another task file, or the shared plan.
-6. Dispatch all prompt-detail subagents concurrently. After every dispatch is accepted, return immediately. Do not wait for their messages or perform a fan-in.
-7. If subagents cannot continue after return, keep the placeholders and report that asynchronous dispatch is unavailable. Do not silently turn the request into a blocking workflow.
+6. Give the overview job the goal, repository guidance, routing plan, and output directory. It scans the whole system without creating tasks or graph edges and lands `00-system-overview.md` independently.
+7. Dispatch the overview first to reserve one global-view slot, then dispatch all prompt-detail jobs without waiting between them. The jobs still run concurrently. After dispatch attempts finish, return immediately; do not wait for messages or perform a fan-in.
+8. If an agent limit prevents a dispatch, keep that artifact's placeholder and report the exact undispatched jobs. Do not silently turn the request into a blocking workflow or let task-detail fan-out starve the overview.
 
 Prompt-detail jobs may run concurrently even when implementation tasks have hard dependencies. Their prompts describe those dependencies; they do not execute the work. Detail subagents determine exact scope, likely files, validation, acceptance criteria, risks, and prompt guidance. Newly discovered graph proposals and uncertainties stay in the landed task file for later human integration.
 
 Reuse the same output directory when the plan changes. Placeholder rendering must not overwrite task files that have already landed.
+
+## Reconcile on a later invocation
+
+When the human asks to reconcile an output directory, read [references/reconciliation-contract.md](references/reconciliation-contract.md). Wait until the system overview and every task detail have landed, then compare the global and local views in the main thread.
+
+Land a concise `00-reconciliation.md` report. Confirm alignment or propose task, dependency, and collision changes. Never apply proposals to the shared plan or ready queue without human approval. After approval, update the plan, validate it, and resume Kahn's algorithm.
 
 ## Advance work with human approval
 
@@ -135,6 +145,7 @@ Show:
 4. Material collision warnings
 5. The smallest decision needed to continue
 6. The `00-task-index.md` link
+7. The system-overview and reconciliation links
 
 Keep detailed prompts in task files. The conversation must still reveal what is ready and what happens next.
-For fire-and-forget planning, also state that prompt files are landing asynchronously and that an unchanged placeholder means its detail job is still running or failed.
+For fire-and-forget planning, state that the system overview and prompt files are landing asynchronously, reconciliation is a later invocation, and an unchanged placeholder means its job is still running or failed.

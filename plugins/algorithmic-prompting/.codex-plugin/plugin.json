@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
   "author": {
     "name": "Jaeyeol Lee",
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Turn a goal into parallel, commit-ready work.",
-    "longDescription": "Route work from intentionally structured repository layout, publish a minimal provisional index before implementation comprehension, then let concurrent subagents land thoroughly researched coding-agent prompts.",
+    "longDescription": "Publish a provisional DAG immediately, then asynchronously build task-local coding prompts and a task-free whole-system overview for later human-controlled reconciliation.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
@@ -21,8 +21,10 @@
       "Choose lean, balanced, or thorough prompt depth",
       "Dispatch prompt details with concurrent subagents",
       "Land bounded coding-agent prompts asynchronously",
+      "Build an asynchronous whole-system overview",
+      "Reconcile global and task-local findings",
       "Guide commit and integration handoffs"
     ],
-    "defaultPrompt": "Turn this goal into a dependency-aware routing plan from repository instructions and intentionally structured layout only. Use lean prompts unless requested otherwise. Do not inspect implementation, tests, SDK, or UI before returning the provisional task index. Then dispatch concurrent prompt-detail subagents for thorough comprehension and return immediately after dispatch."
+    "defaultPrompt": "Turn this goal into a provisional DAG from structured repository layout and return the index first. Reserve one task-free whole-system overview job, then dispatch concurrent task-detail jobs, return immediately, and keep reconciliation for a later invocation."
   }
 }

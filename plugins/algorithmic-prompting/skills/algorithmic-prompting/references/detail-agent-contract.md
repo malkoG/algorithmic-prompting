@@ -8,6 +8,8 @@ Give the detail agent the shared routing-plan path, output directory, assigned t
 
 Verify routing assumptions against actual code. Report uncertainties and proposed dependency or collision corrections. This is read-only planning. Do not edit the repository, create branches or worktrees, implement code, commit, or modify the shared plan, index, manifest, or sibling files.
 
+Do not read `00-system-overview.md` or sibling detail results. Reconciliation needs an independent local view.
+
 ## Compact result
 
 Return only the task-specific delta. The landing script supplies shared context, branch safety, commit rules, and handoff boilerplate.

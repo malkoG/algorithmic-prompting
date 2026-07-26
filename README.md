@@ -6,9 +6,10 @@ Turn a software goal into parallel, commit-ready work that coding agents can exe
 
 ```text
 Goal
-└── Layout-first routing — where to investigate
-    └── Concurrent comprehension — how the system works
-        └── Commit units — one task, one prompt, one commit
+└── Fast routing → task index and provisional DAG
+    ├── N task-detail jobs → local coding prompts
+    └── 1 system-overview job → global understanding
+        └── Later reconciliation → reviewed graph and prompts
 
 Dependencies determine what is ready next.
 ```
@@ -17,7 +18,8 @@ Lane names come from the project rather than a fixed technology or product taxon
 
 ```text
 Summary and task index return first
-└── Concurrent subagents verify code and land full task prompts independently
+├── Task prompts land independently
+└── System overview lands independently
 ```
 
 ## What you get
@@ -26,7 +28,9 @@ Summary and task index return first
 - A fast provisional topology derived from intentionally structured layout
 - A dependency graph showing parallel and waiting work
 - One bounded coding-agent prompt that lands independently per commit unit
-- Concurrent prompt-detail subagents with no coordinator fan-in
+- One task-free whole-system overview that lands independently
+- Later reconciliation of global and task-local findings
+- Concurrent planning jobs with no initial coordinator fan-in
 - Clear start, commit, and integration handoffs
 
 Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lean profile keeps each detail job and landed prompt compact; use deeper profiles only where the task benefits from more context and edge cases.
@@ -35,8 +39,9 @@ Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lea
 
 1. Describe the goal or provide a spec.
 2. Review the provisional routing summary, lanes, task shells, and explicit dependencies.
-3. Open stable task links as full prompts land in parallel.
-4. Approve the next ready batch and integrate completed commits.
+3. Let the system overview and full task prompts land in parallel.
+4. Invoke reconciliation to review proposed graph or prompt changes.
+5. Approve the next ready batch and integrate completed commits.
 
 ## Install
 

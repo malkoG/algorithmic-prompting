@@ -16,8 +16,12 @@ from graph_ready import DONE, analyze, load_plan
 
 
 INDEX_NAME = "00-task-index.md"
+OVERVIEW_NAME = "00-system-overview.md"
+RECONCILIATION_NAME = "00-reconciliation.md"
 MANIFEST_NAME = ".task-files.json"
 PLACEHOLDER_MARKER = "<!-- algorithmic-prompting:placeholder -->"
+OVERVIEW_PLACEHOLDER_MARKER = "<!-- algorithmic-prompting:overview-placeholder -->"
+RECONCILIATION_PLACEHOLDER_MARKER = "<!-- algorithmic-prompting:reconciliation-placeholder -->"
 
 
 def one_line(value: object, fallback: str = "Not specified") -> str:
@@ -289,6 +293,32 @@ The complete coding-agent prompt is being prepared. This file will be replaced a
 """
 
 
+def render_overview_placeholder(plan: dict) -> str:
+    return f"""# System overview — {one_line(plan.get('goal'), 'Task plan')}
+
+{OVERVIEW_PLACEHOLDER_MARKER}
+
+- Status: scanning asynchronously
+- Scope: whole-system structure and behavior
+- Task decomposition: excluded
+
+The overview job is mapping boundaries, end-to-end flows, shared invariants, integration surfaces, global risks, and unknowns. This file will be replaced atomically when that independent job finishes.
+"""
+
+
+def render_reconciliation_placeholder(plan: dict) -> str:
+    return f"""# Reconciliation — {one_line(plan.get('goal'), 'Task plan')}
+
+{RECONCILIATION_PLACEHOLDER_MARKER}
+
+- Status: waiting
+- Requires: landed system overview and all task details
+- Graph changes: require human approval
+
+Invoke Algorithmic Prompting again with this output directory when the asynchronous artifacts are ready. The main thread will compare the global overview with local task details and propose any task, dependency, or collision changes.
+"""
+
+
 def render_detail_review(task: dict) -> str:
     dependencies = [
         f"{item.get('from')} → {item.get('to')} — {one_line(item.get('reason'))}"
@@ -457,7 +487,15 @@ def render_index(
     )
     for task in plan["tasks"]:
         grouped[category(task, ready)][task["lane"]][task.get("module", "Tasks")].append(task)
-    lines = [f"# {one_line(plan.get('goal'), 'Task plan')}", ""]
+    lines = [
+        f"# {one_line(plan.get('goal'), 'Task plan')}",
+        "",
+        "## Planning views",
+        "",
+        f"- [System overview]({OVERVIEW_NAME})",
+        f"- [Reconciliation]({RECONCILIATION_NAME})",
+        "",
+    ]
     for heading in ("Ready", "Active", "Waiting", "Blocked", "Completed"):
         if heading not in grouped:
             continue
@@ -744,7 +782,7 @@ def render_conversation_summary(
         lines.extend(
             [
                 f"**Topology:** {one_line(plan.get('topology_status'), 'provisional')}; detail subagents verify dependencies and collisions",
-                "**Prompt details:** queued; task files land independently",
+                "**Async views:** system overview and task details queued independently; reconciliation waits for both",
                 "",
             ]
         )
@@ -780,6 +818,8 @@ def render_conversation_summary(
             else render_task_mermaid(plan),
             "",
             f"[Open full task index](<{output_dir / INDEX_NAME}>)",
+            f"[Open system overview](<{output_dir / OVERVIEW_NAME}>)",
+            f"[Open reconciliation](<{output_dir / RECONCILIATION_NAME}>)",
         ]
     )
     return "\n".join(lines).rstrip()
@@ -833,6 +873,21 @@ def main() -> int:
             )
         atomic_write_text(path, content)
 
+    overview_path = output_dir / OVERVIEW_NAME
+    if (
+        not overview_path.exists()
+        or OVERVIEW_PLACEHOLDER_MARKER in overview_path.read_text(encoding="utf-8")
+    ):
+        atomic_write_text(overview_path, render_overview_placeholder(plan))
+
+    reconciliation_path = output_dir / RECONCILIATION_NAME
+    if (
+        not reconciliation_path.exists()
+        or RECONCILIATION_PLACEHOLDER_MARKER
+        in reconciliation_path.read_text(encoding="utf-8")
+    ):
+        atomic_write_text(reconciliation_path, render_reconciliation_placeholder(plan))
+
     atomic_write_text(
         output_dir / INDEX_NAME,
         render_index(plan, filenames, ready, placeholders=args.placeholders),
@@ -851,6 +906,8 @@ def main() -> int:
             {
                 "directory": str(output_dir),
                 "index": str(output_dir / INDEX_NAME),
+                "overview": str(overview_path),
+                "reconciliation": str(reconciliation_path),
                 "tasks": filenames,
                 "mode": "placeholders" if args.placeholders else "complete",
                 "conversation_summary": summary,
