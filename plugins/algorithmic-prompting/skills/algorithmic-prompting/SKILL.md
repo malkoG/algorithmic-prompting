@@ -1,6 +1,6 @@
 ---
 name: algorithmic-prompting
-description: Partition software work into architecture lanes and independently mergeable modules; decompose each module into dependency-aware subtasks; generate a bounded coding-agent prompt for every subtask; render task and module DAGs; and coordinate human-in-the-loop execution with two-level Kahn scheduling across Git worktrees. Use for implementation plans, tech specs, ADRs, issue breakdowns, coding-agent delegation, parallel agent work, modular worktree scheduling, merge-order planning, large task graphs, or dependency-graph reviews.
+description: Partition software work into a small number of broad, parallel execution lanes; avoid unnecessary subtask splitting; derive lane and task dependency DAGs; generate bounded coding-agent prompts; and coordinate human-in-the-loop Kahn scheduling across Git worktrees. Use for implementation plans, tech specs, ADRs, issue breakdowns, coding-agent delegation, parallel agent work, coarse worktree scheduling, merge-order planning, or dependency-graph reviews.
 ---
 
 # Algorithmic Prompting
@@ -10,59 +10,60 @@ Turn a goal into a reviewable DAG and advance it only through explicit human dec
 ## Build the plan
 
 1. Inspect the request, relevant tech specs or ADRs, repository guidance, and affected code. Do not require a formal design document.
-2. Identify architectural lanes from the request and repository, preserving user-provided names such as `API`, `WEB`, and `SDK`. Use `CORE` when only one lane is meaningful.
-3. Inside lanes, cluster work into independently mergeable modules. A good module has a clear input contract, exclusive ownership, independent validation, one mergeable output, and no hidden prerequisite. Give it a stable ID such as `API-AUTH` or `WEB-SIGNIN`.
-4. Split each module into the smallest independently verifiable subtasks that still produce meaningful progress. Give each a stable lane-aware ID such as `API-01`, `WEB-01`, or `SDK-01`.
-5. For every subtask, record its lane, module, outcome, likely files or file patterns, validation, completion gate, and a standalone draft coding-agent prompt.
+2. Identify the fewest broad execution lanes that expose meaningful parallelism, usually two to six. Preserve useful names such as `API`, `WEB`, and `SDK`; use repository-specific capability names when they create cleaner ownership.
+3. Give every lane a clear input, exclusive or low-collision ownership, independent validation, and one mergeable output. Prefer lanes that can start from the same base and finish without waiting for sibling implementation details.
+4. Default to one coarse task and one coding-agent prompt per lane. Split a lane only when a hard prerequisite, separate merge or rollback boundary, different owner, or independently valuable validation gate makes separate dispatch useful. Do not split merely because several files or implementation steps exist.
+5. Use an optional module only when one lane truly contains multiple independently mergeable outputs. Keep it out of simple plans. Give every retained task a stable lane-aware ID such as `API-01`, `WEB-01`, or `SDK-01`.
 6. Classify relationships:
    - Add a hard directed edge `A -> B` only when B needs A's result before it can satisfy its completion gate.
    - Record a file collision when tasks may touch the same file or tightly coupled generated artifact.
    - Do not turn file overlap alone into a hard edge. Infer an integration order when justified; otherwise flag it for human choice.
-7. Exclude lane and synthetic goal nodes from dependency calculations. Derive the module DAG by collapsing every cross-module task edge into one module edge. Do not maintain duplicate edge sources. With no hard edges, describe the graph as a forest of independent nodes; if the goal node is shown, describe that view as a star.
-8. Check both task and module graphs for cycles before scheduling. If a cycle exists, stop Kahn processing, show it, and propose ways to split a task or module or relax an incorrect edge. Never silently remove an edge.
+7. Derive the lane DAG by collapsing cross-lane task edges. If modules exist, derive their DAG the same way. Do not maintain duplicate edge sources. With no hard edges, describe the lanes as a forest of independent nodes; if the goal node is shown, describe that view as a star.
+8. Check task, lane, and optional module graphs for cycles. A lane-level cycle means the partition is too coupled: merge lanes or extract a small bridge contract. Never silently remove an edge.
 
 Use `references/plan-schema.md` when persisting a machine-readable plan. Run `scripts/graph_ready.py <plan.json>` to validate it and calculate the current ready queue.
 
-## Model architectural lanes
+## Model parallel execution lanes
 
-- Treat a lane as task metadata and a visual partition, not as a prerequisite node.
+- Treat a lane as the default branch, worktree, validation, and merge unit. Its DAG edges are derived from task prerequisites.
 - Use short uppercase lane IDs containing letters or digits. Number tasks independently within each lane as `<LANE>-<NN>`.
 - Record each lane's scope, likely paths or components, and validation profile. Treat paths as predictions unless the human declares an allowlist.
 - Prefer repository-native boundaries and terminology over a fixed global taxonomy.
-- Keep cross-lane dependencies explicit. Same lane does not imply dependency; different lanes do not imply independence.
-- Render lanes as Mermaid subgraphs while preserving one global hard-dependency DAG.
-- When ranking otherwise equivalent ready tasks, prefer a batch spread across lanes, but let hard dependencies and collision evidence override lane diversity.
+- Keep cross-lane dependencies sparse and explicit. If nearly every lane waits for another, reconsider the boundaries instead of accepting poor parallelism.
+- Optimize for a wide first Kahn frontier: maximize lanes that can safely start from the shared base without inventing weak boundaries.
+- Distinguish an implementation dependency from an integration dependency. If a stable contract, fixture, mock, or stub lets a consumer lane work safely, do not block it on the producer's implementation.
+- When several lanes can implement against one contract but need joint verification, let them run in parallel and add one narrow `INT` integration lane after them instead of chaining the lanes together.
+- Keep shared contracts small and early. Move generated files, migrations, lockfiles, and central registries into one owning lane or a narrow bridge lane.
+- Render the collapsed lane DAG as the primary Mermaid view. Show local task topology only when a lane was intentionally split.
 
-## Modularize for parallel work
+## Keep the hierarchy shallow
 
-- Treat lanes as architectural partitions, modules as branch/worktree/merge units, and tasks as bounded coding steps.
-- Form modules around stable contracts and ownership boundaries. Prefer a module when its work can be validated and merged without coordinating edits to sibling modules.
-- Isolate shared schemas, generated artifacts, migrations, lockfiles, central registries, and other hotspots in a contract or bridge module when they would otherwise create wide collisions.
-- Keep unavoidable same-file tasks in one module unless a strict sequence is clearer than parallel work.
-- Prefer one worktree and child branch per ready module. Parallelize tasks inside a module only when their ownership and validation are genuinely independent.
-- Render two topologies: the module quotient DAG for dispatch and integration, and each module's local task DAG for coding order.
-- Apply Kahn twice: first select zero-indegree modules globally, then select zero-indegree tasks inside each approved module.
+- Prefer `goal → lanes` for most plans. Use `goal → lanes → tasks` only where a lane needs an explicit local sequence.
+- Aim for one task per lane. Two or three tasks are acceptable when they expose a real gate; a long checklist belongs inside the lane prompt, not in the graph.
+- Do not create a node for routine implementation steps, individual files, test files, or expected refactors that the same agent can complete safely in one worktree.
+- Use modules only as an escape hatch for a genuinely large lane. Never add modules merely to make the graph look more structured.
+- If two proposed lanes share a hotspot or require constant coordination, merge them. If one small contract unlocks many lanes, isolate that contract and keep the downstream lanes broad.
 
-Use this compact module card in conversation and prompts. Omit an inapplicable `Merge` or `Next` line.
+Use this compact lane card in conversation and prompts. Omit an inapplicable `Merge` or `Next` line.
 
 ```text
-Module: API-AUTH
+Lane: API
 Input: approved auth contract
 Owns: api/auth/**
-Tasks: API-01 → API-02
+Task: API-01
 Output: authenticated endpoint
-Merge: task/authentication/api-auth @ <full commit SHA> → feature/authentication
-Next: SDK-AUTH, WEB-AUTH
+Merge: task/authentication/api @ <full commit SHA> → feature/authentication
+Next: SDK, WEB
 ```
 
-## Draft a coding-agent prompt for every task
+## Draft one coding-agent prompt per lane
 
-Generate prompts for all subtasks during planning, including tasks that are not ready yet. Make each prompt independently understandable and easy for the human to edit before dispatch. Follow `references/coding-agent-prompt.md`.
+Generate one coarse prompt per lane by default, including lanes that are not ready yet. If a lane was intentionally split for a real gate, generate one prompt per separately dispatched task. Make each prompt independently understandable and easy for the human to edit before dispatch. Follow `references/coding-agent-prompt.md`.
 
 Each prompt must include:
 
 - The stable lane-aware task ID, lane, title, and concrete outcome.
-- Its module ID, input-to-output contract, exclusive ownership, and local task order when modules are present.
+- Its lane input-to-output contract, exclusive ownership, and compact internal checklist. Mention a module only when one actually exists.
 - Relevant repository and product context without copying the entire parent request.
 - The prerequisite gate and whether the task is currently ready. For a blocked task, say exactly what must become available before it starts.
 - The base branch, exact base SHA, assigned child branch, and worktree when known; otherwise say that the coordinator will assign them.
@@ -94,7 +95,7 @@ When a plan has more than five subtasks, or when the user asks for compact or cl
 2. Run `scripts/render_task_files.py <plan.json> [--output-dir <existing-temp-dir>]`.
 3. Paste the renderer's `conversation_summary` into chat, including its Mermaid topology. Treat it as the primary plan view and `00-task-index.md` as an optional deep dive.
 4. For 12 or fewer tasks, list every task in the conversation as one compact linked line containing its ID, title, and status. For larger plans, show total status counts, per-lane ready/total counts, and direct links for ready, active, and blocked tasks; summarize waiting and completed tasks by count.
-5. Always show the lane-grouped Mermaid graph, material collision warnings, and the smallest next HITL decision directly in chat. When modules exist, lead with the compact module quotient DAG and module cards; keep task details in clickable files. Otherwise show every task node and hard dependency edge. Render collision risks as dashed links labeled `collision`. Do not require an index click to understand topology, learn what can run next, or see what needs human input. Do not inline every coding-agent prompt.
+5. Always show the compact lane cards, collapsed lane Mermaid graph, material collision warnings, and smallest next HITL decision directly in chat. Show task topology only for intentionally split lanes. Do not require an index click to understand what can run next or what needs human input. Do not inline every coding-agent prompt.
 6. Reuse the same output directory when the graph changes. The renderer preserves the first filename assigned to each stable task ID so existing links do not move.
 7. Do not automatically delete task files. Let system temporary storage expire, or ask before removing a user-selected durable directory.
 
@@ -102,15 +103,15 @@ Name user-facing files `<task-id-lower>-<task-summary-kebab>.md`, for example `a
 
 ## Apply Kahn's algorithm with HITL gates
 
-Calculate indegrees from incomplete hard-prerequisite edges only. A module is globally ready when its module indegree is zero and it contains locally ready work. A task is locally ready when its task indegree is zero and its status is `planned` or `ready`.
+Calculate indegrees from incomplete hard-prerequisite edges only. A lane is globally ready when its collapsed lane indegree is zero and it contains ready work. A retained task is locally ready when its task indegree is zero and its status is `planned` or `ready`.
 
 At each iteration:
 
-1. Present the zero-indegree module queue globally and grouped by lane, then the local ready task queue inside each ready module. For task-only plans, present the task queue directly.
+1. Present the zero-indegree lane queue. Show local task queues only for lanes that were intentionally split.
 2. Show collision warnings among ready tasks and with active tasks.
-3. Propose one or more parallel module batches. Prefer lane diversity among equally safe modules, keep hard-dependent modules in different iterations, and label merge risks with a proposed integration order. Use the compact module card plus `Start`, `Merge`, and `Next` lines instead of prose.
+3. Propose the widest safe parallel lane batch. Keep hard-dependent lanes in different iterations and label merge risks with a proposed integration order. Use the compact lane card plus `Start`, `Merge`, and `Next` lines instead of prose.
 4. Ask the human to select or approve the next batch and resolve any ambiguous ordering. Accept a natural-language answer such as "Start API-01 and WEB-01 from main; merge API-01 first." Interpret it, then reflect the normalized start points and merge order concisely. Ask a follow-up only when branch, base, or ordering remains materially ambiguous. Do not require a structured response. Do not create worktrees, delegate implementation, merge, or mark work complete without authorization covering that action.
-5. For an approved module batch, allocate one child branch and worktree per module. Refresh each selected task prompt with its module contract, approved base branch and SHA, module child branch, branch-creation mode, worktree, current prerequisite state, sibling ownership, validation commands, and integration gate. Present final prompts for human approval before dispatch.
+5. For an approved lane batch, allocate one child branch and worktree per lane. Refresh each selected lane prompt with its approved base branch and SHA, lane child branch, branch-creation mode, worktree, prerequisite state, sibling ownership, validation commands, and integration gate. Present final prompts for human approval before dispatch.
 6. After implementation, verify each task's completion gate. Ask for or record human acceptance, then mark the task `completed` or `integrated` as appropriate. Show `Merge: <child branch> @ <full commit SHA> → <target branch>`; never substitute the worktree name.
 7. Remove only accepted prerequisite nodes from the working graph, decrement successor indegrees, and present the newly unlocked queue as `Next: <task IDs>`.
 8. Continue until all tasks are accepted or no node is ready. If unfinished nodes remain with no ready node, report a cycle, rejected completion gate, or external blocker.
@@ -119,9 +120,9 @@ A hard-dependent successor becomes eligible only when the predecessor's output i
 
 ## Worktree scheduling rules
 
-- Assign one independently mergeable module per worktree by default. A module may contain one coherent task or a tightly coupled local task chain.
+- Assign one broad, independently mergeable lane per worktree by default.
 - Prefer independent zero-indegree tasks for parallel worktrees.
-- Name module branches in a namespace separate from the parent branch as `task/<goal-slug>/<module-id-lower>`, for example `task/authentication/api-auth`. For a task-only plan, use `task/<goal-slug>/<task-id-lower>-<task-slug>`. If `feature/authentication` exists, never propose `feature/authentication/api-auth`; Git cannot use an existing branch ref as a directory prefix.
+- Name lane branches in a namespace separate from the parent branch as `task/<goal-slug>/<lane-id-lower>`, for example `task/authentication/api`. Use a more specific task suffix only when a lane was intentionally split into separate worktrees. If `feature/authentication` exists, never propose `feature/authentication/api`; Git cannot use an existing branch ref as a directory prefix.
 - Let the coordinator allocate and validate every branch name. If worker-managed creation is approved, authorize the worker to create only that exact branch from the recorded base SHA.
 - In a detached managed worktree, create the assigned branch only when `HEAD` equals the recorded base SHA. If the worktree is already on the assigned branch, continue without recreating it. For any other branch or SHA, stop and report the mismatch.
 - Never assume separate worktrees eliminate merge conflicts; they isolate working copies, not integration risk.
@@ -134,15 +135,14 @@ A hard-dependent successor becomes eligible only when the predecessor's output i
 
 Provide the following compact sections:
 
-1. **Lane map** — lane ID, scope, likely paths or components, and validation profile.
-2. **Module map** — module ID, input, ownership, local task topology, output, branch, status, and downstream modules.
-3. **Task inventory** — lane-aware ID, module, outcome, likely files, validation, and status.
-4. **Hard dependencies** — task edges with one-sentence reasons and the derived cross-module edges.
-5. **Collision constraints** — task or module pairs, overlapping surface, risk, and proposed merge order if known.
-6. **Topology** — the module Mermaid DAG for dispatch plus local task topology where useful.
-7. **Kahn state** — completed nodes, current module and task indegrees, global module queue, local task queues, and proposed parallel batches.
-8. **Draft coding-agent prompts** — one clearly labeled, copy-ready prompt per stable task ID.
-9. **Human decision** — the smallest explicit choice needed to advance the graph.
+1. **Lane map** — lane ID, input, ownership, output, validation, branch, status, and downstream lanes.
+2. **Minimal task inventory** — normally one task per lane; include extra tasks only with the split reason.
+3. **Hard dependencies** — retained task edges and the derived cross-lane edges.
+4. **Collision constraints** — lane or task pairs, overlapping surface, risk, and proposed merge order if known.
+5. **Topology** — the collapsed lane Mermaid DAG, plus local task topology only where useful.
+6. **Kahn state** — completed lanes, lane indegrees, global ready lanes, and proposed parallel batch.
+7. **Draft coding-agent prompts** — one copy-ready prompt per lane or separately dispatched task.
+8. **Human decision** — the smallest explicit choice needed to advance the graph.
 
 State assumptions and confidence when file ownership or prerequisites are inferred. Keep the graph editable: incorporate human corrections, recompute indegrees, and preserve stable task IDs.
 

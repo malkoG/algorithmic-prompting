@@ -163,6 +163,53 @@ def analyze(plan: dict) -> dict:
         if len(ready_set.intersection(task_ids)) >= 2:
             ready_collisions.append(collision)
 
+    tasks_by_lane: dict[str, list[str]] = defaultdict(list)
+    for task_id, task in by_id.items():
+        tasks_by_lane[task["lane"]].append(task_id)
+    lane_completed = {
+        lane_id
+        for lane_id in lane_ids
+        if tasks_by_lane[lane_id]
+        and all(by_id[task_id].get("status", "planned") in DONE for task_id in tasks_by_lane[lane_id])
+    }
+    lane_dependencies: dict[tuple[str, str], dict] = {}
+    lane_successors: dict[str, list[str]] = defaultdict(list)
+    lane_indegree_all = {lane_id: 0 for lane_id in lane_ids}
+    lane_indegree_remaining = {lane_id: 0 for lane_id in lane_ids}
+    for edge in edges:
+        source_lane = by_id[edge["from"]]["lane"]
+        target_lane = by_id[edge["to"]]["lane"]
+        if source_lane == target_lane:
+            continue
+        pair = (source_lane, target_lane)
+        detail = lane_dependencies.setdefault(
+            pair,
+            {"from": source_lane, "to": target_lane, "task_edges": [], "reasons": []},
+        )
+        detail["task_edges"].append(f"{edge['from']} -> {edge['to']}")
+        reason = edge.get("reason")
+        if isinstance(reason, str) and reason.strip() and reason not in detail["reasons"]:
+            detail["reasons"].append(reason)
+    for source_lane, target_lane in sorted(lane_dependencies):
+        lane_successors[source_lane].append(target_lane)
+        lane_indegree_all[target_lane] += 1
+        if source_lane not in lane_completed:
+            lane_indegree_remaining[target_lane] += 1
+    lane_queue = deque(sorted(lane_id for lane_id, degree in lane_indegree_all.items() if degree == 0))
+    lane_cycle_degrees = dict(lane_indegree_all)
+    while lane_queue:
+        lane_id = lane_queue.popleft()
+        for target in lane_successors[lane_id]:
+            lane_cycle_degrees[target] -= 1
+            if lane_cycle_degrees[target] == 0:
+                lane_queue.append(target)
+    cyclic_lanes = sorted(lane_id for lane_id, degree in lane_cycle_degrees.items() if degree > 0)
+    lane_ready = sorted(
+        lane_id
+        for lane_id, degree in lane_indegree_remaining.items()
+        if degree == 0 and lane_id not in lane_completed and ready_by_lane[lane_id]
+    )
+
     module_dependencies: dict[tuple[str, str], dict] = {}
     module_successors: dict[str, list[str]] = defaultdict(list)
     module_indegree_all = {module_id: 0 for module_id in modules_by_id}
@@ -224,11 +271,17 @@ def analyze(plan: dict) -> dict:
         and modules_by_id[module_id].get("status", "planned") in READY_STATUSES
         and ready_by_module[module_id]
     )
-    valid_dag = not cyclic and not cyclic_modules
+    valid_dag = not cyclic and not cyclic_lanes and not cyclic_modules
 
     return {
         "valid_dag": valid_dag,
         "cyclic_tasks": cyclic,
+        "valid_lane_dag": not cyclic_lanes,
+        "cyclic_lanes": cyclic_lanes,
+        "lane_dependencies": [lane_dependencies[pair] for pair in sorted(lane_dependencies)],
+        "lane_completed": sorted(lane_completed),
+        "lane_indegree_remaining": lane_indegree_remaining,
+        "lane_ready": lane_ready if valid_dag else [],
         "valid_module_dag": not cyclic_modules,
         "cyclic_modules": cyclic_modules,
         "completed": sorted(task_id for task_id, task in by_id.items() if task.get("status") in DONE),

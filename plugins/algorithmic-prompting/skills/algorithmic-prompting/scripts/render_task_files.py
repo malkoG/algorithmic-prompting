@@ -88,11 +88,11 @@ def render_task(
             )
     status = "ready" if task_id in ready else task.get("status", "planned")
     prompt = str(task.get("draft_prompt", "")).strip()
+    module_line = f"- Module: {task['module']}\n" if task.get("module") else ""
     return f"""# {task_id} — {one_line(task.get('title'), 'Task')}
 
 - Lane: {task['lane']}
-- Module: {one_line(task.get('module'), 'None')}
-- Lane scope: {one_line(lane.get('scope'))}
+{module_line}- Lane scope: {one_line(lane.get('scope'))}
 - Status: {status}
 - Dependencies: {', '.join(predecessors) if predecessors else 'None'}
 - Waiting for: {', '.join(waiting_for) if waiting_for else 'None'}
@@ -267,6 +267,18 @@ def render_module_mermaid(plan: dict, state: dict) -> str:
     return "\n".join(lines)
 
 
+def render_lane_mermaid(plan: dict, state: dict) -> str:
+    """Render broad execution lanes and their collapsed cross-lane dependencies."""
+    lines = ["```mermaid", "flowchart LR"]
+    for lane in sorted(plan["lanes"], key=lambda item: item["id"]):
+        label = f"{mermaid_label(lane['id'])}<br/>{mermaid_label(lane.get('output', lane.get('scope', 'Lane output')))}"
+        lines.append(f'  {mermaid_token("lane", lane["id"])}["{label}"]')
+    for edge in state.get("lane_dependencies", []):
+        lines.append(f"  {mermaid_token('lane', edge['from'])} --> {mermaid_token('lane', edge['to'])}")
+    lines.append("```")
+    return "\n".join(lines)
+
+
 def module_task_notation(module_id: str, plan: dict) -> str:
     task_ids = sorted(task["id"] for task in plan["tasks"] if task.get("module") == module_id)
     if not task_ids:
@@ -287,6 +299,59 @@ def module_task_notation(module_id: str, plan: dict) -> str:
             if len(ordered) == len(task_ids):
                 return " → ".join(ordered)
     return ", ".join(task_ids)
+
+
+def lane_task_notation(lane_id: str, plan: dict) -> str:
+    task_ids = sorted(task["id"] for task in plan["tasks"] if task["lane"] == lane_id)
+    if not task_ids:
+        return "None"
+    internal_edges = [
+        (edge.get("from"), edge.get("to"))
+        for edge in plan.get("dependencies", [])
+        if edge.get("from") in task_ids and edge.get("to") in task_ids
+    ]
+    if len(task_ids) > 1 and len(internal_edges) == len(task_ids) - 1:
+        successors = {source: target for source, target in internal_edges}
+        targets = {target for _, target in internal_edges}
+        starts = [task_id for task_id in task_ids if task_id not in targets]
+        if len(starts) == 1 and len(successors) == len(internal_edges):
+            ordered = [starts[0]]
+            while ordered[-1] in successors:
+                ordered.append(successors[ordered[-1]])
+            if len(ordered) == len(task_ids):
+                return " → ".join(ordered)
+    return ", ".join(task_ids)
+
+
+def render_lane_cards(plan: dict, state: dict) -> str:
+    ready = set(state.get("lane_ready", []))
+    completed = set(state.get("lane_completed", []))
+    outgoing: dict[str, list[str]] = defaultdict(list)
+    for edge in state.get("lane_dependencies", []):
+        outgoing[edge["from"]].append(edge["to"])
+    blocks: list[str] = []
+    for lane in sorted(plan["lanes"], key=lambda item: item["id"]):
+        status = "ready" if lane["id"] in ready else "completed" if lane["id"] in completed else "waiting"
+        lane_task_count = sum(task["lane"] == lane["id"] for task in plan["tasks"])
+        task_label = "Task" if lane_task_count == 1 else "Tasks"
+        lines = [
+            f"Lane: {lane['id']} — {status}",
+            f"Input: {one_line(lane.get('input'), 'goal and accepted prerequisites')}",
+            f"Owns: {', '.join(lane.get('paths', []))}",
+            f"{task_label}: {lane_task_notation(lane['id'], plan)}",
+            f"Output: {one_line(lane.get('output'), lane.get('scope'))}",
+        ]
+        branch = lane.get("assigned_branch")
+        commit_sha = lane.get("commit_sha")
+        target = lane.get("base_branch")
+        if lane["id"] in ready and target:
+            lines.append(f"Start: {lane['id']} from {target}")
+        if branch and commit_sha and target:
+            lines.append(f"Merge: {branch} @ {commit_sha} → {target}")
+        if outgoing[lane["id"]]:
+            lines.append(f"Next: {', '.join(sorted(outgoing[lane['id']]))}")
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
 
 
 def render_module_cards(plan: dict, state: dict) -> str:
@@ -365,6 +430,8 @@ def render_conversation_summary(
     ]
     if plan.get("modules"):
         lines.extend(["**Modules**", "", render_module_cards(plan, state), ""])
+    else:
+        lines.extend(["**Execution lanes**", "", render_lane_cards(plan, state), ""])
     if len(tasks) <= 12:
         lines.append("**Tasks**")
         lines.append("")
@@ -386,7 +453,11 @@ def render_conversation_summary(
             "",
             "**Topology**",
             "",
-            render_module_mermaid(plan, state) if plan.get("modules") else render_task_mermaid(plan),
+            render_module_mermaid(plan, state)
+            if plan.get("modules")
+            else render_lane_mermaid(plan, state)
+            if len(plan["lanes"]) > 1
+            else render_task_mermaid(plan),
             "",
             f"[Open full task index](<{output_dir / INDEX_NAME}>)",
         ]
@@ -403,7 +474,7 @@ def main() -> int:
     plan = load_plan(args.plan)
     state = analyze(plan)
     if not state["valid_dag"]:
-        cycles = state["cyclic_tasks"] + state.get("cyclic_modules", [])
+        cycles = state["cyclic_tasks"] + state.get("cyclic_lanes", []) + state.get("cyclic_modules", [])
         raise SystemExit(f"cannot render cyclic plan: {', '.join(cycles)}")
 
     if args.output_dir:

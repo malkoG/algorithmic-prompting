@@ -1,4 +1,4 @@
 interface:
   display_name: "Algorithmic Prompting"
-  short_description: "Plan hierarchical DAGs and bounded agent prompts"
-  default_prompt: "Use $algorithmic-prompting to partition this goal into architecture lanes and mergeable modules, derive module and task DAGs, show concise module cards and Mermaid topology, and guide manual two-level Kahn execution."
+  short_description: "Plan broad parallel lanes with minimal splitting"
+  default_prompt: "Use $algorithmic-prompting to partition this goal into the fewest broad lanes that maximize safe parallel work, default to one task and prompt per lane, show concise lane cards and a collapsed Mermaid DAG, and guide manual Kahn execution."

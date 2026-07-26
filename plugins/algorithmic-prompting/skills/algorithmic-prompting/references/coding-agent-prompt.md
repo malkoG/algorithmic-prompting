@@ -1,30 +1,28 @@
 # Coding-agent prompt
 
-Create one standalone draft prompt per task. Use this structure, omitting empty sections rather than inventing details.
+Create one standalone draft prompt per execution lane by default. Use a separate task prompt only when that task has its own dispatch or merge boundary. Omit empty sections rather than inventing details.
 
 ```text
-Implement <TASK_ID>: <TITLE>
+Implement lane <LANE_ID>: <OUTCOME>
 
 Lane
 - ID: <API | WEB | SDK | repository-specific lane>
-- Scope: <lane responsibility>
-- Likely paths/components: <lane predictions, not an allowlist>
+- Contract: <required input> → <mergeable output>
+- Owns: <paths or components; predictions unless declared an allowlist>
 - Validation profile: <lane-level checks>
 
-Module
-- ID: <API-AUTH | repository-specific module>
-- Contract: <required input> → <mergeable output>
-- Owns: <exclusive paths or components>
-- Local tasks: <API-01 → API-02 | task IDs>
+Work package
+- ID: <API-01 | compact list only when intentionally split>
+- Checklist: <implementation steps kept inside this prompt, not separate graph nodes>
 
 Outcome
 <One concrete, verifiable outcome.>
 
 Context
-<Only the repository, product, and design context needed for this task.>
+<Only the repository, product, and design context needed for this lane.>
 
 Execution
-<Use one or two short natural-language sentences. State what this task waits for, or where it starts and which assigned branch it uses. When branch creation is authorized, include the exact base SHA and exact child branch. State that the coordinator will merge the returned commit.>
+<Use one or two short natural-language sentences. State what this lane waits for, or where it starts and which assigned branch it uses. When branch creation is authorized, include the exact base SHA and exact child branch. State that the coordinator will merge the returned commit.>
 
 Branch setup
 - Inspect the current branch and `HEAD` before editing.
@@ -34,7 +32,7 @@ Branch setup
 - Do not check out or advance the parent integration branch from this worktree.
 
 Scope
-- <Required behavior or implementation step>
+- <Complete lane behavior, with routine steps kept as a short checklist>
 - Likely files: <paths or patterns; guidance unless explicitly declared an allowlist>
 
 Out of scope
@@ -60,9 +58,10 @@ Make the child branch and full commit SHA explicit so the coordinator can report
 ## Prompt rules
 
 - Write in imperative language and make the outcome testable.
-- Keep the prompt bounded to one subtask even when the parent goal is broader.
-- State the lane explicitly, but never infer readiness from lane membership.
-- When modules are present, state the module contract and ownership compactly. The module is the default branch, worktree, validation, and merge unit; the task remains the coding scope.
+- Keep the prompt bounded to one broad lane even when the parent goal is broader.
+- Make the lane contract, ownership, output, and validation explicit.
+- Keep routine implementation steps inside the lane prompt. Create separate task prompts only for real prerequisite, ownership, validation, or merge boundaries.
+- When modules are present, state the module compactly, but do not introduce modules in ordinary lane-level plans.
 - Include lane-level validation and add task-specific checks rather than replacing either one.
 - Include enough context to avoid forcing the coding agent to rediscover the dependency plan.
 - Distinguish predicted files from a strict file allowlist.
@@ -70,25 +69,25 @@ Make the child branch and full commit SHA explicit so the coordinator can report
 - Do not claim a task is ready merely because its draft prompt exists.
 - Write execution metadata as one or two short natural-language sentences, not a form. Omit default strategy language. Mention prerequisites only when blocked, and mention stacking or an unresolved integration choice only when it changes execution.
 - Keep planning-time prompts non-mutating. Add branch-creation and commit authorization only after the human approves dispatch.
-- Allocate a module child as `task/<goal-slug>/<module-id-lower>`. For a task-only plan, use `task/<goal-slug>/<task-id-lower>-<task-slug>`. Never create `<base-branch>/<task>` when `<base-branch>` already exists.
+- Allocate a lane child as `task/<goal-slug>/<lane-id-lower>`. Add a task suffix only for an intentionally separate task worktree. Never create `<base-branch>/<lane>` when `<base-branch>` already exists.
 - Include an exact base SHA whenever branch creation is authorized. Do not allow the worker to choose a substitute base or alternate branch name.
 - Do not embed approval to create worktrees, merge, rebase, push, delete branches, or modify sibling work.
 - Replace planning-time unknowns after the human selects a Kahn batch; retain visible unresolved decisions if the human has not answered them.
 
 ## Dispatch example
 
-For parent branch `feature/authentication` at `abc123`, assign module `API-AUTH` a child such as `task/authentication/api-auth`, not `feature/authentication/api-auth`.
+For parent branch `feature/authentication` at `abc123`, assign the `API` lane a child such as `task/authentication/api`, not `feature/authentication/api`.
 
 ```text
 Execution
 
-Start API-AUTH from `feature/authentication` at `abc123` on `task/authentication/api-auth` in the managed worktree. Implement only API-01 in this task prompt and return one commit for the module branch.
+Start the API lane from `feature/authentication` at `abc123` on `task/authentication/api` in the managed worktree. Complete the lane work package and return one focused commit.
 
 Run the API validation profile.
 
 - You are authorized to create exactly the assigned child branch if this managed worktree is detached at abc123.
-- If already on task/authentication/api-auth, continue without creating another branch.
+- If already on task/authentication/api, continue without creating another branch.
 - Otherwise, stop and report the mismatch.
 
-After lane-level and task-specific validation, create exactly one focused commit for API-01. Do not merge, rebase, push, or modify feature/authentication. Return the commit SHA and validation results to the parent coordinator.
+After lane validation, create exactly one focused commit for the API lane. Do not merge, rebase, push, or modify feature/authentication. Return the commit SHA and validation results to the parent coordinator.
 ```

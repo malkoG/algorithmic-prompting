@@ -1,13 +1,14 @@
 # Algorithmic Prompting
 
-A ChatGPT and Codex plugin for decomposing implementation goals into architectural lanes, independently mergeable modules, and bounded tasks, then coordinating parallel worktrees with human-in-the-loop Kahn scheduling.
+A ChatGPT and Codex plugin for decomposing implementation goals into a few broad, independently mergeable execution lanes, then coordinating parallel worktrees with human-in-the-loop Kahn scheduling.
 
 ## Highlights
 
 - Architecture lanes such as `API`, `WEB`, and `SDK`
-- Independently mergeable modules with input, ownership, validation, and output contracts
-- A top-level module DAG plus local task DAGs
-- Two-level Kahn scheduling for module dispatch and task execution
+- Broad lanes with input, ownership, validation, and output contracts
+- One worktree, branch, coarse task, and coding-agent prompt per lane by default
+- A collapsed lane DAG with intentionally sparse dependencies
+- Minimal task splitting: only for real prerequisite, ownership, merge, rollback, or validation boundaries
 - Stable lane-aware task IDs
 - Hard dependency DAGs and file-collision constraints
 - Conversation-ready Mermaid topology
@@ -15,16 +16,16 @@ A ChatGPT and Codex plugin for decomposing implementation goals into architectur
 - Clickable task files for large plans
 - Human-approved worktree, branch, commit, and merge coordination
 
-## Compact module prompt
+## Compact lane prompt
 
 ```text
-Module: API-AUTH
+Lane: API
 Input: approved auth contract
 Owns: api/auth/**
-Tasks: API-01 → API-02
+Task: API-01
 Output: authenticated endpoint
-Merge: task/authentication/api-auth @ <full commit SHA> → feature/authentication
-Next: SDK-AUTH, WEB-AUTH
+Merge: task/authentication/api @ <full commit SHA> → feature/authentication
+Next: SDK, WEB
 ```
 
 ## Install from GitHub
