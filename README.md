@@ -2,6 +2,8 @@
 
 Turn a software goal into parallel, commit-ready work that coding agents can execute and a human can control.
 
+Part of **Squire** by `kodingwarrior`.
+
 ## Mental model
 
 ```text
@@ -47,7 +49,7 @@ Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lea
 
 ```sh
 codex plugin marketplace add malkoG/algorithmic-prompting
-codex plugin add algorithmic-prompting@malkog-plugins
+codex plugin add algorithmic-prompting@squire
 ```
 
 Start a new ChatGPT or Codex conversation after installation.
@@ -55,6 +57,6 @@ Start a new ChatGPT or Codex conversation after installation.
 ## Update
 
 ```sh
-codex plugin marketplace upgrade malkog-plugins
-codex plugin add algorithmic-prompting@malkog-plugins
+codex plugin marketplace upgrade squire
+codex plugin add algorithmic-prompting@squire
 ```

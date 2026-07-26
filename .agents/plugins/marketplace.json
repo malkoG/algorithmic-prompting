@@ -1,7 +1,7 @@
 {
-  "name": "malkog-plugins",
+  "name": "squire",
   "interface": {
-    "displayName": "malkoG Plugins"
+    "displayName": "Squire"
   },
   "plugins": [
     {

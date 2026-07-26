@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
   "author": {
     "name": "Jaeyeol Lee",
@@ -11,7 +11,7 @@
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Turn a goal into parallel, commit-ready work.",
     "longDescription": "Publish a provisional DAG immediately, then asynchronously build task-local coding prompts and a task-free whole-system overview for later human-controlled reconciliation.",
-    "developerName": "Jaeyeol Lee",
+    "developerName": "kodingwarrior",
     "category": "Productivity",
     "capabilities": [
       "Turn goals into executable work plans",
