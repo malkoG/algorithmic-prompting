@@ -91,6 +91,7 @@ def render_task(
     return f"""# {task_id} — {one_line(task.get('title'), 'Task')}
 
 - Lane: {task['lane']}
+- Module: {one_line(task.get('module'), 'None')}
 - Lane scope: {one_line(lane.get('scope'))}
 - Status: {status}
 - Dependencies: {', '.join(predecessors) if predecessors else 'None'}
@@ -153,9 +154,11 @@ def category(task: dict, ready: set[str]) -> str:
 
 
 def render_index(plan: dict, filenames: dict[str, str], ready: set[str]) -> str:
-    grouped: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    grouped: dict[str, dict[str, dict[str, list[dict]]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(list))
+    )
     for task in plan["tasks"]:
-        grouped[category(task, ready)][task["lane"]].append(task)
+        grouped[category(task, ready)][task["lane"]][task.get("module", "Tasks")].append(task)
     lines = [f"# {one_line(plan.get('goal'), 'Task plan')}", ""]
     for heading in ("Ready", "Active", "Waiting", "Blocked", "Completed"):
         if heading not in grouped:
@@ -163,9 +166,13 @@ def render_index(plan: dict, filenames: dict[str, str], ready: set[str]) -> str:
         lines.extend([f"## {heading}", ""])
         for lane_id in sorted(grouped[heading]):
             lines.extend([f"### {lane_id}", ""])
-            for task in sorted(grouped[heading][lane_id], key=lambda item: item["id"]):
-                label = f"{task['id']} — {one_line(task.get('title'), 'Task')}"
-                lines.append(f"- [{label}]({filenames[task['id']]})")
+            for module_id in sorted(grouped[heading][lane_id]):
+                if module_id != "Tasks":
+                    lines.extend([f"#### {module_id}", ""])
+                for task in sorted(grouped[heading][lane_id][module_id], key=lambda item: item["id"]):
+                    label = f"{task['id']} — {one_line(task.get('title'), 'Task')}"
+                    lines.append(f"- [{label}]({filenames[task['id']]})")
+                lines.append("")
             lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
@@ -191,7 +198,7 @@ def mermaid_label(value: object) -> str:
     )
 
 
-def render_mermaid(plan: dict) -> str:
+def render_task_mermaid(plan: dict) -> str:
     """Render the full hard-dependency topology with lane partitions."""
     tasks = sorted(plan["tasks"], key=lambda item: item["id"])
     task_ids = {task["id"] for task in tasks}
@@ -238,11 +245,102 @@ def render_mermaid(plan: dict) -> str:
     return "\n".join(lines)
 
 
+def render_module_mermaid(plan: dict, state: dict) -> str:
+    """Render the quotient DAG: modules are nodes, cross-module task edges are collapsed."""
+    modules = sorted(plan.get("modules", []), key=lambda item: item["id"])
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for module in modules:
+        grouped[module["lane"]].append(module)
+
+    lines = ["```mermaid", "flowchart LR"]
+    for lane_id in sorted(grouped):
+        lines.append(f'  subgraph {mermaid_token("lane", lane_id)}["{mermaid_label(lane_id)}"]')
+        for module in grouped[lane_id]:
+            label = f"{mermaid_label(module['id'])}<br/>{mermaid_label(module.get('output', 'Module output'))}"
+            lines.append(f'    {mermaid_token("module", module["id"])}["{label}"]')
+        lines.append("  end")
+    for edge in state.get("module_dependencies", []):
+        lines.append(
+            f"  {mermaid_token('module', edge['from'])} --> {mermaid_token('module', edge['to'])}"
+        )
+    lines.append("```")
+    return "\n".join(lines)
+
+
+def module_task_notation(module_id: str, plan: dict) -> str:
+    task_ids = sorted(task["id"] for task in plan["tasks"] if task.get("module") == module_id)
+    if not task_ids:
+        return "None"
+    internal_edges = [
+        (edge.get("from"), edge.get("to"))
+        for edge in plan.get("dependencies", [])
+        if edge.get("from") in task_ids and edge.get("to") in task_ids
+    ]
+    if len(task_ids) > 1 and len(internal_edges) == len(task_ids) - 1:
+        successors = {source: target for source, target in internal_edges}
+        targets = {target for _, target in internal_edges}
+        starts = [task_id for task_id in task_ids if task_id not in targets]
+        if len(starts) == 1 and len(successors) == len(internal_edges):
+            ordered = [starts[0]]
+            while ordered[-1] in successors:
+                ordered.append(successors[ordered[-1]])
+            if len(ordered) == len(task_ids):
+                return " → ".join(ordered)
+    return ", ".join(task_ids)
+
+
+def render_module_cards(plan: dict, state: dict) -> str:
+    ready = set(state.get("module_ready", []))
+    completed = set(state.get("module_completed", []))
+    outgoing: dict[str, list[str]] = defaultdict(list)
+    for edge in state.get("module_dependencies", []):
+        outgoing[edge["from"]].append(edge["to"])
+    modules = sorted(plan.get("modules", []), key=lambda item: item["id"])
+    if len(modules) > 8:
+        visible = [
+            module
+            for module in modules
+            if module["id"] in ready or module.get("status") in {"active", "blocked"}
+        ]
+    else:
+        visible = modules
+    blocks: list[str] = []
+    for module in visible:
+        status = "ready" if module["id"] in ready else "completed" if module["id"] in completed else module.get("status", "waiting")
+        lines = [
+            f"Module: {module['id']} — {status}",
+            f"Input: {one_line(module.get('input'))}",
+            f"Owns: {', '.join(module.get('owns', []))}",
+            f"Tasks: {module_task_notation(module['id'], plan)}",
+            f"Output: {one_line(module.get('output'))}",
+        ]
+        branch = module.get("assigned_branch")
+        commit_sha = module.get("commit_sha")
+        target = module.get("base_branch")
+        if module["id"] in ready and target:
+            lines.append(f"Start: {module['id']} from {target}")
+        if branch and commit_sha and target:
+            lines.append(f"Merge: {branch} @ {commit_sha} → {target}")
+        if outgoing[module["id"]]:
+            lines.append(f"Next: {', '.join(sorted(outgoing[module['id']]))}")
+        blocks.append("\n".join(lines))
+    if len(modules) > 8:
+        waiting_count = sum(
+            module["id"] not in ready
+            and module["id"] not in completed
+            and module.get("status", "planned") not in {"active", "blocked"}
+            for module in modules
+        )
+        blocks.append(f"Waiting modules: {waiting_count} · Completed modules: {len(completed)}")
+    return "\n\n".join(blocks)
+
+
 def render_conversation_summary(
     plan: dict,
     filenames: dict[str, str],
     ready: set[str],
     output_dir: Path,
+    state: dict,
 ) -> str:
     """Render a paste-ready overview so the index is an optional deep dive."""
     tasks = sorted(plan["tasks"], key=lambda item: item["id"])
@@ -265,6 +363,8 @@ def render_conversation_summary(
         f"**Lanes:** {lane_line or 'None'}",
         "",
     ]
+    if plan.get("modules"):
+        lines.extend(["**Modules**", "", render_module_cards(plan, state), ""])
     if len(tasks) <= 12:
         lines.append("**Tasks**")
         lines.append("")
@@ -286,7 +386,7 @@ def render_conversation_summary(
             "",
             "**Topology**",
             "",
-            render_mermaid(plan),
+            render_module_mermaid(plan, state) if plan.get("modules") else render_task_mermaid(plan),
             "",
             f"[Open full task index](<{output_dir / INDEX_NAME}>)",
         ]
@@ -303,7 +403,8 @@ def main() -> int:
     plan = load_plan(args.plan)
     state = analyze(plan)
     if not state["valid_dag"]:
-        raise SystemExit(f"cannot render cyclic plan: {', '.join(state['cyclic_tasks'])}")
+        cycles = state["cyclic_tasks"] + state.get("cyclic_modules", [])
+        raise SystemExit(f"cannot render cyclic plan: {', '.join(cycles)}")
 
     if args.output_dir:
         output_dir = args.output_dir.expanduser().resolve()
@@ -332,7 +433,7 @@ def main() -> int:
 
     (output_dir / INDEX_NAME).write_text(render_index(plan, filenames, ready), encoding="utf-8")
     (output_dir / MANIFEST_NAME).write_text(json.dumps(filenames, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    summary = render_conversation_summary(plan, filenames, ready, output_dir)
+    summary = render_conversation_summary(plan, filenames, ready, output_dir, state)
     print(
         json.dumps(
             {

@@ -1,37 +1,29 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.2.5",
-  "description": "Partition work into architecture lanes, show dependency topology in conversation, and navigate large plans through clickable task files.",
+  "version": "0.3.0",
+  "description": "Partition work into lanes and mergeable modules, then schedule module and task DAGs across worktrees.",
   "author": {
     "name": "Jaeyeol Lee",
-    "email": "jaeyeol.lee@hey.com",
-    "url": "https://github.com/malkoG"
+    "email": "jaeyeol.lee@hey.com"
   },
-  "homepage": "https://github.com/malkoG/algorithmic-prompting",
-  "repository": "https://github.com/malkoG/algorithmic-prompting",
-  "keywords": [
-    "dependency-graph",
-    "coding-agents",
-    "git-worktrees",
-    "parallel-development",
-    "human-in-the-loop"
-  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Plan parallel worktrees and draft bounded agent prompts.",
-    "longDescription": "Partition implementation goals into architecture lanes such as API, WEB, and SDK; show a compact Mermaid dependency topology in conversation; draft a coding-agent prompt for every subtask; navigate large plans through clickable temporary Markdown files; distinguish hard prerequisites from merge risks; and advance ready work through human-approved Kahn scheduling.",
+    "longDescription": "Partition implementation goals into architecture lanes and independently mergeable modules; derive a module quotient DAG from task dependencies; show compact module cards and Mermaid topology in conversation; draft bounded coding-agent prompts; and advance work through human-approved two-level Kahn scheduling across worktrees.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
       "Dependency graph planning",
       "Architecture lane partitioning",
+      "Hierarchical module decomposition",
+      "Two-level Kahn scheduling",
       "Conversation-ready Mermaid topology",
       "Clickable task-file navigation",
       "Coding-agent prompt drafting",
       "Worktree scheduling",
       "HITL Kahn coordination"
     ],
-    "defaultPrompt": "Partition this goal into architecture lanes, show a compact Mermaid dependency graph, draft a coding-agent prompt for every subtask, and guide manual Kahn execution through natural-language start and merge decisions."
+    "defaultPrompt": "Partition this goal into architecture lanes and independently mergeable modules, derive the module and task DAGs, show concise module cards and Mermaid topology, draft a bounded coding-agent prompt for every task, and guide manual two-level Kahn execution."
   }
 }

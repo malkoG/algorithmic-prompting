@@ -11,6 +11,12 @@ Lane
 - Likely paths/components: <lane predictions, not an allowlist>
 - Validation profile: <lane-level checks>
 
+Module
+- ID: <API-AUTH | repository-specific module>
+- Contract: <required input> → <mergeable output>
+- Owns: <exclusive paths or components>
+- Local tasks: <API-01 → API-02 | task IDs>
+
 Outcome
 <One concrete, verifiable outcome.>
 
@@ -56,6 +62,7 @@ Make the child branch and full commit SHA explicit so the coordinator can report
 - Write in imperative language and make the outcome testable.
 - Keep the prompt bounded to one subtask even when the parent goal is broader.
 - State the lane explicitly, but never infer readiness from lane membership.
+- When modules are present, state the module contract and ownership compactly. The module is the default branch, worktree, validation, and merge unit; the task remains the coding scope.
 - Include lane-level validation and add task-specific checks rather than replacing either one.
 - Include enough context to avoid forcing the coding agent to rediscover the dependency plan.
 - Distinguish predicted files from a strict file allowlist.
@@ -63,24 +70,24 @@ Make the child branch and full commit SHA explicit so the coordinator can report
 - Do not claim a task is ready merely because its draft prompt exists.
 - Write execution metadata as one or two short natural-language sentences, not a form. Omit default strategy language. Mention prerequisites only when blocked, and mention stacking or an unresolved integration choice only when it changes execution.
 - Keep planning-time prompts non-mutating. Add branch-creation and commit authorization only after the human approves dispatch.
-- Allocate child names in a separate namespace as `task/<goal-slug>/<task-id-lower>-<task-slug>`. The lane is already encoded in IDs such as `API-01`, `WEB-01`, and `SDK-01`. Never create `<base-branch>/<task>` when `<base-branch>` already exists.
+- Allocate a module child as `task/<goal-slug>/<module-id-lower>`. For a task-only plan, use `task/<goal-slug>/<task-id-lower>-<task-slug>`. Never create `<base-branch>/<task>` when `<base-branch>` already exists.
 - Include an exact base SHA whenever branch creation is authorized. Do not allow the worker to choose a substitute base or alternate branch name.
 - Do not embed approval to create worktrees, merge, rebase, push, delete branches, or modify sibling work.
 - Replace planning-time unknowns after the human selects a Kahn batch; retain visible unresolved decisions if the human has not answered them.
 
 ## Dispatch example
 
-For parent branch `feature/authentication` at `abc123`, assign API task `API-01` a child such as `task/authentication/api-01-add-endpoint`, not `feature/authentication/api-01`.
+For parent branch `feature/authentication` at `abc123`, assign module `API-AUTH` a child such as `task/authentication/api-auth`, not `feature/authentication/api-auth`.
 
 ```text
 Execution
 
-Start API-01 from `feature/authentication` at `abc123` on `task/authentication/api-01-add-endpoint` in the managed worktree. Return one commit for the coordinator to merge into `feature/authentication`.
+Start API-AUTH from `feature/authentication` at `abc123` on `task/authentication/api-auth` in the managed worktree. Implement only API-01 in this task prompt and return one commit for the module branch.
 
 Run the API validation profile.
 
 - You are authorized to create exactly the assigned child branch if this managed worktree is detached at abc123.
-- If already on task/authentication/api-01-add-endpoint, continue without creating another branch.
+- If already on task/authentication/api-auth, continue without creating another branch.
 - Otherwise, stop and report the mismatch.
 
 After lane-level and task-specific validation, create exactly one focused commit for API-01. Do not merge, rebase, push, or modify feature/authentication. Return the commit SHA and validation results to the parent coordinator.
