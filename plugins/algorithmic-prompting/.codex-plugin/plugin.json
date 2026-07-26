@@ -11,7 +11,7 @@
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Turn a goal into parallel, commit-ready work.",
     "longDescription": "Publish a provisional DAG immediately, then asynchronously build task-local coding prompts and a task-free whole-system overview for later human-controlled reconciliation.",
-    "developerName": "kodingwarrior",
+    "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
       "Turn goals into executable work plans",

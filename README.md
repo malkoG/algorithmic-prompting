@@ -2,7 +2,7 @@
 
 Turn a software goal into parallel, commit-ready work that coding agents can execute and a human can control.
 
-Part of **Squire** by `kodingwarrior`.
+Part of **Squire** by Jaeyeol Lee.
 
 ## Mental model
 
