@@ -15,6 +15,8 @@ A ChatGPT and Codex plugin for decomposing implementation goals into a few broad
 - Draft coding-agent prompt for every subtask
 - Clickable task files for large plans
 - Human-approved worktree, branch, commit, and merge coordination
+- Exactly one focused commit per dispatched task, with no internal graph IDs
+- Outcome-based commit subjects followed by two to four bullet lines
 
 ## Compact lane prompt
 
@@ -26,6 +28,16 @@ Task: API-01
 Output: authenticated endpoint
 Merge: task/authentication/api @ <full commit SHA> → feature/authentication
 Next: SDK, WEB
+```
+
+Successful task commits use this shape:
+
+```text
+Add authenticated session handling
+
+- Validate credentials and issue session tokens
+- Preserve existing rejection behavior
+- Cover successful and rejected sign-in flows
 ```
 
 ## Install from GitHub

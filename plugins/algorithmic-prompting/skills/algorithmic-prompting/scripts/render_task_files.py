@@ -124,6 +124,12 @@ def render_task(
 
 {one_line(task.get('completion_gate'))}
 
+## Commit contract
+
+- End this successfully validated task with exactly one focused commit.
+- Do not mention internal task or graph identifiers in the commit message.
+- Use an outcome-based subject, a blank line, and two to four bullet lines.
+
 ## Coding-agent prompt
 
 ```text
@@ -134,6 +140,8 @@ def render_task(
 
 - Child branch:
 - Commit SHA:
+- Commit subject:
+- Commit body bullets:
 - Files changed:
 - Validation results:
 - Assumptions and risks:

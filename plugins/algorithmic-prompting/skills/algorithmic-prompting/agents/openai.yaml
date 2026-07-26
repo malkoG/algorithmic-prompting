@@ -1,4 +1,4 @@
 interface:
   display_name: "Algorithmic Prompting"
   short_description: "Plan broad parallel lanes with minimal splitting"
-  default_prompt: "Use $algorithmic-prompting to partition this goal into the fewest broad lanes that maximize safe parallel work, default to one task and prompt per lane, show concise lane cards and a collapsed Mermaid DAG, and guide manual Kahn execution."
+  default_prompt: "Use $algorithmic-prompting to partition this goal into broad parallel lanes, guide manual Kahn execution, and require one outcome-based commit with a short bullet body per dispatched task without internal graph IDs."

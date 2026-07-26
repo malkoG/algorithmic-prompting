@@ -87,6 +87,24 @@ Use the child branch plus exact commit SHA as the merge identity. The branch is 
 
 Tell the coding agent to work only on the assigned subtask, preserve unrelated user changes, follow repository instructions, and stop to report a missing prerequisite or materially expanded scope. A planning-time draft must not authorize branch creation. After HITL approves dispatch, the final prompt may authorize creation of exactly one assigned child branch from an exact base SHA; it must not authorize any alternate branch, merging, pushing, or unrelated cleanup. Never hide unresolved HITL choices inside a prompt; label them for the human before dispatch.
 
+## End every dispatched task with a commit
+
+- Require exactly one focused commit after a separately dispatched task passes validation. A broad lane with an internal checklist still produces one lane commit; intentionally separate task prompts each produce their own commit.
+- Treat graph IDs such as `API-01`, `WEB-02`, and module IDs as coordination metadata. Never include them as labels in the commit subject, body, or trailers. Natural product and architecture terms remain fine.
+- Write a human-readable imperative subject describing the outcome, then a blank line and two to four `-` bullet lines describing meaningful changes and validation.
+- Derive the message from the actual diff. Do not use generic subjects such as `Complete task`, repeat the branch name, or mention the worktree.
+- If the task is blocked or required validation fails, stop and report instead of creating a success commit.
+
+Use this shape:
+
+```text
+Add authenticated session handling
+
+- Validate credentials and issue session tokens
+- Preserve existing error responses for rejected requests
+- Cover successful and rejected sign-in flows
+```
+
 ## Use clickable task files for large plans
 
 When a plan has more than five subtasks, or when the user asks for compact or clickable navigation, keep detailed task content out of chat while making the conversation itself sufficient for routine navigation:
@@ -111,8 +129,8 @@ At each iteration:
 2. Show collision warnings among ready tasks and with active tasks.
 3. Propose the widest safe parallel lane batch. Keep hard-dependent lanes in different iterations and label merge risks with a proposed integration order. Use the compact lane card plus `Start`, `Merge`, and `Next` lines instead of prose.
 4. Ask the human to select or approve the next batch and resolve any ambiguous ordering. Accept a natural-language answer such as "Start API-01 and WEB-01 from main; merge API-01 first." Interpret it, then reflect the normalized start points and merge order concisely. Ask a follow-up only when branch, base, or ordering remains materially ambiguous. Do not require a structured response. Do not create worktrees, delegate implementation, merge, or mark work complete without authorization covering that action.
-5. For an approved lane batch, allocate one child branch and worktree per lane. Refresh each selected lane prompt with its approved base branch and SHA, lane child branch, branch-creation mode, worktree, prerequisite state, sibling ownership, validation commands, and integration gate. Present final prompts for human approval before dispatch.
-6. After implementation, verify each task's completion gate. Ask for or record human acceptance, then mark the task `completed` or `integrated` as appropriate. Show `Merge: <child branch> @ <full commit SHA> → <target branch>`; never substitute the worktree name.
+5. For an approved lane batch, allocate one child branch and worktree per lane. Refresh each selected lane prompt with its approved base branch and SHA, lane child branch, branch-creation mode, worktree, prerequisite state, sibling ownership, validation commands, integration gate, and the commit contract above. Present final prompts for human approval before dispatch.
+6. After implementation, require the successful task's focused commit, verify its completion gate, and record the full commit SHA. Ask for or record human acceptance, then mark the task `completed` or `integrated` as appropriate. Show `Merge: <child branch> @ <full commit SHA> → <target branch>`; never substitute the worktree name.
 7. Remove only accepted prerequisite nodes from the working graph, decrement successor indegrees, and present the newly unlocked queue as `Next: <task IDs>`.
 8. Continue until all tasks are accepted or no node is ready. If unfinished nodes remain with no ready node, report a cycle, rejected completion gate, or external blocker.
 
@@ -121,6 +139,7 @@ A hard-dependent successor becomes eligible only when the predecessor's output i
 ## Worktree scheduling rules
 
 - Assign one broad, independently mergeable lane per worktree by default.
+- End every separately dispatched task in that worktree with exactly one focused commit. Do not combine separately dispatched sibling tasks into one commit.
 - Prefer independent zero-indegree tasks for parallel worktrees.
 - Name lane branches in a namespace separate from the parent branch as `task/<goal-slug>/<lane-id-lower>`, for example `task/authentication/api`. Use a more specific task suffix only when a lane was intentionally split into separate worktrees. If `feature/authentication` exists, never propose `feature/authentication/api`; Git cannot use an existing branch ref as a directory prefix.
 - Let the coordinator allocate and validate every branch name. If worker-managed creation is approved, authorize the worker to create only that exact branch from the recorded base SHA.

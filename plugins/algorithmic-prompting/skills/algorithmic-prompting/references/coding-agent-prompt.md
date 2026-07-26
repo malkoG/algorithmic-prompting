@@ -50,7 +50,9 @@ Validation
 - <Test, lint, typecheck, build, or focused manual check>
 
 Handoff
-Create the requested focused commit only when commit authorization is present. Return the child branch, commit SHA, concise summary of changes, files touched, validations run and their results, assumptions, and remaining risks. Do not merge, rebase, push, or delete the worktree or branch. Stop and report if a prerequisite is unavailable, the requested scope materially expands, or a collision makes the task unsafe to continue.
+After successful validation, end this dispatched task with exactly one focused commit. Use a human-readable imperative subject, a blank line, and two to four `-` bullet lines describing meaningful changes and validation. Do not mention internal coordination identifiers such as `API-01`, module IDs, the branch name, or the worktree in the commit message. Derive the message from the actual diff.
+
+Return the child branch, commit SHA, concise summary of changes, files touched, validations run and their results, assumptions, and remaining risks. Do not merge, rebase, push, or delete the worktree or branch. Stop without creating a success commit if a prerequisite is unavailable, required validation fails, the requested scope materially expands, or a collision makes the task unsafe to continue.
 
 Make the child branch and full commit SHA explicit so the coordinator can report `Merge: <child branch> @ <full commit SHA> → <target branch>`. A worktree name or path is diagnostic context, not a merge identity.
 ```
@@ -69,6 +71,8 @@ Make the child branch and full commit SHA explicit so the coordinator can report
 - Do not claim a task is ready merely because its draft prompt exists.
 - Write execution metadata as one or two short natural-language sentences, not a form. Omit default strategy language. Mention prerequisites only when blocked, and mention stacking or an unresolved integration choice only when it changes execution.
 - Keep planning-time prompts non-mutating. Add branch-creation and commit authorization only after the human approves dispatch.
+- Require one commit per separately dispatched task. If one lane prompt contains a routine checklist, commit the complete lane once; if tasks have separate prompts, commit each task separately.
+- Keep internal graph identifiers out of commit messages. Use an outcome-based subject followed by two to four bullet lines; natural technical terms such as API or SDK are allowed when they describe the change rather than a coordination label.
 - Allocate a lane child as `task/<goal-slug>/<lane-id-lower>`. Add a task suffix only for an intentionally separate task worktree. Never create `<base-branch>/<lane>` when `<base-branch>` already exists.
 - Include an exact base SHA whenever branch creation is authorized. Do not allow the worker to choose a substitute base or alternate branch name.
 - Do not embed approval to create worktrees, merge, rebase, push, delete branches, or modify sibling work.
@@ -89,5 +93,5 @@ Run the API validation profile.
 - If already on task/authentication/api, continue without creating another branch.
 - Otherwise, stop and report the mismatch.
 
-After lane validation, create exactly one focused commit for the API lane. Do not merge, rebase, push, or modify feature/authentication. Return the commit SHA and validation results to the parent coordinator.
+After lane validation, create exactly one focused commit. Do not include `API-01` or another coordination identifier in its message. Use an outcome-based subject, a blank line, and two to four bullet lines describing the implementation and validation. Do not merge, rebase, push, or modify feature/authentication. Return the commit SHA and validation results to the parent coordinator.
 ```

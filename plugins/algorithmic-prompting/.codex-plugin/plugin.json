@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Partition work into broad parallel lanes with minimal task splitting, then schedule lane DAGs across worktrees.",
   "author": {
     "name": "Jaeyeol Lee",
@@ -19,12 +19,13 @@
       "Broad execution-lane decomposition",
       "Minimal task splitting",
       "Lane-level Kahn scheduling",
+      "One structured commit per dispatched task",
       "Conversation-ready Mermaid topology",
       "Clickable task-file navigation",
       "Coding-agent prompt drafting",
       "Worktree scheduling",
       "HITL Kahn coordination"
     ],
-    "defaultPrompt": "Partition this goal into the fewest broad lanes that maximize safe parallel work, default to one task and coding-agent prompt per lane, show concise lane cards and a collapsed Mermaid DAG, and guide manual Kahn execution."
+    "defaultPrompt": "Partition this goal into the fewest broad lanes that maximize safe parallel work, default to one task and prompt per lane, guide manual Kahn execution, and require one outcome-based commit with a short bullet body per dispatched task without internal graph IDs."
   }
 }

@@ -114,7 +114,7 @@ Use this compact shape when a persistent or script-validated plan is useful:
 - Express prerequisites only in `dependencies`; scripts derive the lane and optional module DAGs by collapsing task edges.
 - Derive the module DAG by collapsing cross-module task dependencies. Do not duplicate those edges in a separate module dependency list.
 - Derive lane branches as `task/<goal-slug>/<lane-id-lower>` and validate the final Git ref before dispatch. Use a task suffix only for an intentionally separate task worktree.
-- Give every task a non-empty `draft_prompt` that follows `coding-agent-prompt.md`.
+- Give every task a non-empty `draft_prompt` that follows `coding-agent-prompt.md`. The approved dispatch prompt must end successful work with one focused commit whose outcome-based subject and bullet body omit internal graph identifiers.
 - Use statuses `planned`, `ready`, `active`, `completed`, `integrated`, or `blocked`.
 - Treat `completed` and `integrated` tasks as removed for Kahn indegree calculations. Choose `integrated` when downstream tasks require the result on their base branch.
 - Represent prerequisites only in `dependencies`. Each edge is directed from prerequisite to successor.
