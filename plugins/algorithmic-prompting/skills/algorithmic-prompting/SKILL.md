@@ -1,6 +1,6 @@
 ---
 name: algorithmic-prompting
-description: Turn a software goal into a dependency-aware plan with parallel work lanes, atomic commit units, a clickable task index, coding-agent prompts, and human-approved integration guidance. Use for implementation planning, specs, ADRs, issue breakdowns, parallel agent work, worktree coordination, or merge sequencing.
+description: Turn a software goal into a dependency-aware plan with parallel work lanes, atomic commit units, an immediate clickable task index, asynchronously landed coding-agent prompts, and human-approved integration guidance. Use for implementation planning, specs, ADRs, issue breakdowns, parallel agent work, worktree coordination, or merge sequencing.
 ---
 
 # Algorithmic Prompting
@@ -21,7 +21,7 @@ Derive lane names from the project. Do not impose a fixed technology or product 
 
 ## Build the plan
 
-1. Inspect the request, repository guidance, relevant design documents, and affected code.
+1. Inspect the request, repository guidance, relevant design documents, and only enough affected-code entry points to locate ownership boundaries.
 2. Choose the fewest broad lanes that expose safe parallel work. Give each lane a clear input, ownership boundary, validation profile, and mergeable output.
 3. Split each lane into the fewest atomic commit units that make the history understandable and revertible, usually one to three.
 4. Give every unit a stable `<LANE>-<NN>` coordination ID and a human-readable commit intent.
@@ -29,26 +29,48 @@ Derive lane names from the project. Do not impose a fixed technology or product 
 6. Record likely file overlap as a collision, not automatically as a dependency.
 7. Reject cycles. If a collapsed lane graph cycles, merge coupled lanes or isolate a small shared prerequisite.
 
+Keep this scan compact. Record a short `prompt_seed` for each task rather than producing its complete prompt during the scan.
+
+## Choose prompt depth
+
+Use `lean` unless the human asks otherwise. `balanced` adds task-local context for ambiguous work; `thorough` is for high-risk work such as security, migrations, and compatibility changes. A task may override the plan default.
+
+Follow [references/prompt-profiles.md](references/prompt-profiles.md). Detail agents return only a compact task delta; the renderer adds the shared execution contract.
+
 Keep implementation and focused tests in the same commit unit. Do not create separate nodes for routine steps, individual files, formatting, or generated output unless they are independently valuable.
 
 Use [references/plan-schema.md](references/plan-schema.md) for the persisted plan. Run `scripts/graph_ready.py <plan.json>` to validate it and calculate ready lanes and tasks.
 
-## Create the task artifacts
+## Publish the index immediately
 
-Always persist the plan in a temporary directory outside the repository unless the human requests a durable location. Then run:
+Persist the compact plan outside the repository unless the human requests a durable location. Create stable filenames, the index, and placeholder task files before starting detail work:
 
 ```text
-scripts/render_task_files.py <plan.json> [--output-dir <existing-directory>]
+scripts/render_task_files.py <plan.json> --placeholders [--output-dir <existing-directory>]
 ```
 
-Every plan, including a one-task plan, must produce:
+This must create `00-task-index.md`, `.task-files.json`, and one lightweight task file per stable kebab-case filename. Paste the compact conversation summary and index link before dispatching detail jobs.
 
-- `00-task-index.md`
-- One kebab-case Markdown file per task
-- `.task-files.json`
-- A conversation summary with task links and Mermaid topology
+## Let complete prompts land independently
 
-Paste the conversation summary into chat and include the index link. Reuse the same output directory when the plan changes so stable task links remain stable.
+Follow [references/detail-agent-contract.md](references/detail-agent-contract.md). Dispatch one fire-and-forget detail job per task after the placeholders exist.
+
+1. Use separate user-owned Codex tasks when the request explicitly asks for asynchronous, fire-and-forget, or separate task execution and task creation is available. Otherwise use background subagents only when they are documented to continue after the coordinator returns.
+2. Give each job the shared plan path, output directory, its task ID, prompt profile, lane contract, repository guidance, hard prerequisites, collision hints, and likely paths. Prefer bounded task-local context over full conversation history.
+3. Keep detail work read-only with respect to the repository. Do not implement code, create branches or worktrees, or commit changes.
+4. Have each job write one structured detail result to a unique temporary path, then run:
+
+```text
+scripts/land_task_detail.py <plan.json> <detail.json> --output-dir <task-directory>
+```
+
+5. Let the landing script atomically replace only that task's placeholder and persist its detail result. Detail jobs must never edit `00-task-index.md`, `.task-files.json`, another task file, or the shared plan.
+6. Do not wait for detail jobs, collect their messages, or perform a fan-in before returning. Return after every job has been accepted for execution.
+7. If no execution surface can safely continue after return, keep the placeholders and report that asynchronous dispatch is unavailable. Do not silently turn the request into a blocking workflow.
+
+Prompt-detail jobs may run concurrently even when implementation tasks have hard dependencies. Their prompts describe those dependencies; they do not execute the work. Newly discovered graph proposals and uncertainties stay in the landed task file for later human integration.
+
+Reuse the same output directory when the plan changes. Placeholder rendering must not overwrite task files that have already landed.
 
 ## Advance work with human approval
 
@@ -57,7 +79,7 @@ Use incomplete hard prerequisites to calculate the ready queue.
 1. Show ready lanes and ready commit units.
 2. Show material collisions and propose the widest safe parallel batch.
 3. Ask the human to approve the batch in natural language.
-4. After approval, finalize the selected prompts and branch assignments.
+4. After approval, finalize the selected prompt's branch assignment.
 5. After each accepted commit, recompute the graph and show newly ready work.
 6. Stop on a cycle, failed completion gate, unresolved collision, or external blocker.
 
@@ -73,7 +95,7 @@ The branch and full SHA identify work for integration. A worktree name or path d
 
 ## Prepare coding-agent prompts
 
-Create one prompt per commit unit. Follow [references/coding-agent-prompt.md](references/coding-agent-prompt.md).
+Create one complete prompt per commit unit through its detail job and landing script. [references/coding-agent-prompt.md](references/coding-agent-prompt.md) is the source contract for the compiled prompt. In `lean`, keep the task file focused on the compiled prompt instead of duplicating its sections around it.
 
 Each prompt must state:
 
@@ -122,3 +144,4 @@ Show:
 6. The `00-task-index.md` link
 
 Keep detailed prompts in task files. The conversation must still reveal what is ready and what happens next.
+For fire-and-forget planning, also state that prompt files are landing asynchronously and that an unchanged placeholder means its detail job is still running or failed.

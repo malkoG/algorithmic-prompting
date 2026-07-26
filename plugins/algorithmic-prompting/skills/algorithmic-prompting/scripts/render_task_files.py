@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import tempfile
 import unicodedata
@@ -16,6 +17,7 @@ from graph_ready import DONE, analyze, load_plan
 
 INDEX_NAME = "00-task-index.md"
 MANIFEST_NAME = ".task-files.json"
+PLACEHOLDER_MARKER = "<!-- algorithmic-prompting:placeholder -->"
 
 
 def one_line(value: object, fallback: str = "Not specified") -> str:
@@ -35,6 +37,210 @@ def bullet_list(values: object) -> str:
     if not isinstance(values, list) or not values:
         return "- None"
     return "\n".join(f"- {one_line(value)}" for value in values)
+
+
+def atomic_write_text(path: Path, content: str) -> None:
+    """Replace a file atomically so readers never observe partial task prompts."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+def task_prompt_seed(task: dict) -> str:
+    """Return only the task-specific reasoning seed; the renderer supplies the contract."""
+    return str(task.get("prompt_seed", task.get("draft_prompt", ""))).strip()
+
+
+def task_prompt_profile(plan: dict, task: dict) -> str:
+    return str(task.get("prompt_profile", plan.get("prompt_profile", "lean")))
+
+
+def render_agent_prompt(
+    plan: dict,
+    task: dict,
+    lane: dict,
+    dependencies: list[dict],
+    collisions: list[dict],
+    ready: set[str],
+) -> str:
+    """Compile a complete, self-contained worker prompt from one shared plan."""
+    task_id = task["id"]
+    by_id = {item["id"]: item for item in plan["tasks"]}
+    prerequisite_edges = [edge for edge in dependencies if edge.get("to") == task_id]
+    predecessors = [edge["from"] for edge in prerequisite_edges]
+    waiting_for = [
+        predecessor
+        for predecessor in predecessors
+        if by_id[predecessor].get("status", "planned") not in DONE
+    ]
+
+    dependency_lines = [
+        f"{edge['from']} — {one_line(edge.get('reason'), 'required predecessor')}"
+        for edge in prerequisite_edges
+    ]
+    risk_lines = []
+    for collision in collisions:
+        if task_id not in collision.get("tasks", []):
+            continue
+        peers = [peer for peer in collision["tasks"] if peer != task_id]
+        risk_lines.append(
+            f"{', '.join(peers)} — {one_line(collision.get('surface'))} "
+            f"({one_line(collision.get('risk'), 'unspecified risk')})"
+        )
+    risk_lines.extend(task.get("detail_risks", []))
+
+    base_branch = one_line(task.get("base_branch", lane.get("base_branch")), "Coordinator will assign")
+    base_sha = one_line(task.get("base_sha", lane.get("base_sha")), "Coordinator will provide")
+    child_branch = one_line(
+        task.get("assigned_branch", lane.get("assigned_branch")),
+        "Coordinator will assign",
+    )
+    worktree = one_line(task.get("worktree", lane.get("worktree")), "Coordinator will assign")
+    integration_target = one_line(
+        task.get("integration_target", lane.get("integration_target", lane.get("base_branch"))),
+        "Coordinator will assign",
+    )
+    readiness = (
+        "Ready: no incomplete hard prerequisites."
+        if task_id in ready
+        else f"Wait for: {', '.join(waiting_for)}."
+        if waiting_for
+        else f"Current status: {one_line(task.get('status'), 'planned')}."
+    )
+
+    context_values = task.get("context", plan.get("context"))
+    if isinstance(context_values, list):
+        context = bullet_list(context_values)
+    elif context_values:
+        context = one_line(context_values)
+    else:
+        context = f"Goal: {one_line(plan.get('goal'), 'Complete the requested change.')}"
+
+    scope_values = task.get("scope")
+    if not isinstance(scope_values, list) or not scope_values:
+        scope_values = [one_line(task.get("outcome"), task.get("title", "Task outcome"))]
+    out_of_scope = task.get("out_of_scope")
+    if not isinstance(out_of_scope, list) or not out_of_scope:
+        out_of_scope = ["Sibling task work", "Unrelated refactors or cleanup"]
+    acceptance = task.get("acceptance_criteria")
+    if not isinstance(acceptance, list) or not acceptance:
+        acceptance = [one_line(task.get("completion_gate"))]
+
+    if task_prompt_profile(plan, task) == "lean":
+        risk_section = f"\nRisks\n{bullet_list(risk_lines)}\n" if risk_lines else ""
+        return f"""Implement {task_id}: {one_line(task.get('outcome'), task.get('title', 'Task outcome'))}
+
+Lane: {task['lane']} — {one_line(lane.get('input'), 'accepted prerequisites')} → {one_line(lane.get('output'), lane.get('scope'))}
+Prerequisites: {', '.join(dependency_lines) if dependency_lines else 'None'}. {readiness}
+
+Guidance
+{one_line(task_prompt_seed(task), 'Implement the stated outcome within the declared scope.')}
+
+Scope
+{bullet_list(scope_values)}
+- Likely files: {', '.join(task.get('files', [])) or 'Inspect the declared lane ownership.'}
+
+Avoid
+{bullet_list(out_of_scope)}
+{risk_section}
+Done
+{bullet_list(acceptance)}
+
+Checks
+{bullet_list(task.get('validation'))}
+
+Execution
+- Use {child_branch} from {base_branch} at {base_sha}; worktree: {worktree}; integration target: {integration_target}.
+- This draft does not authorize repository mutations. Before editing, verify branch and HEAD. Create only the assigned branch after authorization at the exact base SHA; otherwise stop.
+- After checks pass, create exactly one focused commit. Use an outcome-based subject plus two to four bullet lines; omit task IDs, branch names, and worktree names.
+- Return branch, full commit SHA, changed files, checks, assumptions, and risks. Do not merge, rebase, push, or delete the branch or worktree.
+"""
+
+    module_line = f"- Module: {task['module']}\n" if task.get("module") else ""
+    return f"""Implement {task_id}: {one_line(task.get('outcome'), task.get('title', 'Task outcome'))}
+
+Lane
+- Name: {task['lane']}
+{module_line}- Contract: {one_line(lane.get('input'), 'accepted prerequisites')} → {one_line(lane.get('output'), lane.get('scope'))}
+- Ownership: {', '.join(lane.get('paths', []))}
+- Validation profile: {', '.join(lane.get('validation', []))}
+
+Commit unit
+- Coordination ID: {task_id}
+- Commit intent: {one_line(task.get('commit_intent'), task.get('title', 'Task outcome'))}
+- Prerequisites: {', '.join(predecessors) if predecessors else 'None'}
+- Readiness: {readiness}
+
+Context
+{context}
+
+Task-specific guidance
+{one_line(task_prompt_seed(task), 'Implement the stated outcome within the declared scope.')}
+
+Execution
+- Base branch: {base_branch}
+- Exact base SHA: {base_sha}
+- Child branch: {child_branch}
+- Worktree: {worktree}
+- Integration target: {integration_target}
+- This plan does not authorize branch creation or repository mutations until the coordinator approves this task.
+
+Scope
+{bullet_list(scope_values)}
+- Likely files: {', '.join(task.get('files', [])) or 'Inspect the declared lane ownership.'}
+
+Out of scope
+{bullet_list(out_of_scope)}
+
+Hard dependencies
+{bullet_list(dependency_lines)}
+
+Coordination risks
+{bullet_list(risk_lines)}
+
+Acceptance criteria
+{bullet_list(acceptance)}
+
+Validation
+Lane checks:
+{bullet_list(lane.get('validation'))}
+
+Task checks:
+{bullet_list(task.get('validation'))}
+
+Completion gate
+{one_line(task.get('completion_gate'))}
+
+Branch safety
+- Inspect the current branch and HEAD before editing.
+- Continue when already on the assigned child branch.
+- Create only the assigned child branch when authorized and detached at the exact base SHA.
+- Otherwise stop and report the mismatch.
+- Do not advance the parent branch.
+
+Commit and handoff
+After successful validation, create exactly one focused commit for this unit. Do not combine it with another task or split it across commits.
+
+Use an outcome-based imperative subject, a blank line, and two to four bullet lines describing meaningful changes and validation. Do not include coordination IDs, branch names, or worktree names.
+
+Return the child branch, full commit SHA, changed files, validation results, assumptions, and remaining risks. Do not merge, rebase, push, or delete the branch or worktree. If a prerequisite is missing, validation fails, scope expands materially, or a collision makes the work unsafe, stop without creating a success commit.
+"""
 
 
 def load_manifest(output_dir: Path) -> dict[str, str]:
@@ -64,6 +270,55 @@ def task_filename(task: dict, manifest: dict[str, str]) -> str:
     return f"{slugify(task_id)}-{slugify(task.get('title', 'task'), 60)}.md"
 
 
+def render_placeholder(plan: dict, task: dict, lane: dict, ready: set[str]) -> str:
+    status = "ready" if task["id"] in ready else task.get("status", "planned")
+    return f"""# {task['id']} — {one_line(task.get('title'), 'Task')}
+
+{PLACEHOLDER_MARKER}
+
+- Lane: {task['lane']}
+- Lane scope: {one_line(lane.get('scope'))}
+- Execution status: {status}
+- Prompt status: detailing
+- Prompt profile: {task_prompt_profile(plan, task)}
+- Commit intent: {one_line(task.get('commit_intent'), task.get('title', 'Task outcome'))}
+
+The complete coding-agent prompt is being prepared. This file will be replaced atomically when its independent detail job finishes.
+"""
+
+
+def render_detail_review(task: dict) -> str:
+    dependencies = [
+        f"{item.get('from')} → {item.get('to')} — {one_line(item.get('reason'))}"
+        for item in task.get("detail_proposed_dependencies", [])
+        if isinstance(item, dict)
+    ]
+    collisions = [
+        f"{', '.join(item.get('tasks', []))} — {one_line(item.get('surface'))} "
+        f"({one_line(item.get('risk'), 'unspecified risk')})"
+        for item in task.get("detail_proposed_collisions", [])
+        if isinstance(item, dict) and isinstance(item.get("tasks"), list)
+    ]
+    uncertainties = task.get("detail_uncertainties", [])
+    if not dependencies and not collisions and not uncertainties:
+        return ""
+    return f"""
+## Detail review
+
+### Proposed dependencies
+
+{bullet_list(dependencies)}
+
+### Proposed collisions
+
+{bullet_list(collisions)}
+
+### Uncertainties
+
+{bullet_list(uncertainties)}
+"""
+
+
 def render_task(
     plan: dict,
     task: dict,
@@ -87,16 +342,41 @@ def render_task(
                 f"{', '.join(peers)} — {one_line(collision.get('surface'))} ({one_line(collision.get('risk'), 'unspecified risk')})"
             )
     status = "ready" if task_id in ready else task.get("status", "planned")
-    prompt = str(task.get("draft_prompt", "")).strip()
+    prompt = render_agent_prompt(plan, task, lane, dependencies, collisions, ready)
+    detail_review = render_detail_review(task)
+    profile = task_prompt_profile(plan, task)
+    if profile == "lean":
+        return f"""# {task_id} — {one_line(task.get('title'), 'Task')}
+
+- Lane: {task['lane']}
+- Status: {status}
+- Prompt status: ready
+- Prompt profile: lean
+
+## Coding-agent prompt
+
+```text
+{prompt}
+```
+{detail_review}
+
+## Handoff
+
+- Branch and full commit SHA:
+- Checks and risks:
+"""
+
     module_line = f"- Module: {task['module']}\n" if task.get("module") else ""
     return f"""# {task_id} — {one_line(task.get('title'), 'Task')}
 
 - Lane: {task['lane']}
 {module_line}- Lane scope: {one_line(lane.get('scope'))}
 - Status: {status}
+- Prompt status: ready
+- Prompt profile: {profile}
 - Dependencies: {', '.join(predecessors) if predecessors else 'None'}
 - Waiting for: {', '.join(waiting_for) if waiting_for else 'None'}
-- Assigned branch: {one_line(task.get('assigned_branch'), 'Coordinator will assign')}
+- Assigned branch: {one_line(task.get('assigned_branch', lane.get('assigned_branch')), 'Coordinator will assign')}
 - Commit intent: {one_line(task.get('commit_intent'), task.get('title', 'Task outcome'))}
 
 ## Outcome
@@ -137,6 +417,7 @@ def render_task(
 ```text
 {prompt}
 ```
+{detail_review}
 
 ## Handoff
 
@@ -163,7 +444,12 @@ def category(task: dict, ready: set[str]) -> str:
     return "Waiting"
 
 
-def render_index(plan: dict, filenames: dict[str, str], ready: set[str]) -> str:
+def render_index(
+    plan: dict,
+    filenames: dict[str, str],
+    ready: set[str],
+    placeholders: bool = False,
+) -> str:
     grouped: dict[str, dict[str, dict[str, list[dict]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(list))
     )
@@ -416,6 +702,7 @@ def render_conversation_summary(
     ready: set[str],
     output_dir: Path,
     state: dict,
+    placeholders: bool = False,
 ) -> str:
     """Render a paste-ready overview so the index is an optional deep dive."""
     tasks = sorted(plan["tasks"], key=lambda item: item["id"])
@@ -431,13 +718,27 @@ def render_conversation_summary(
     lane_line = " · ".join(
         f"{lane} {lane_ready[lane]} ready/{lane_totals[lane]} total" for lane in sorted(lane_totals)
     )
+    plan_profile = task_prompt_profile(plan, {})
+    profile_overrides = [
+        f"{task['id']}={task['prompt_profile']}"
+        for task in tasks
+        if task.get("prompt_profile") and task["prompt_profile"] != plan_profile
+    ]
+    profile_line = (
+        f"{plan_profile}; overrides: {', '.join(profile_overrides)}"
+        if profile_overrides
+        else plan_profile
+    )
 
     lines = [
         f"**Plan:** {one_line(plan.get('goal'), 'Task plan')}",
         f"**Status:** {status_line or 'No tasks'}",
         f"**Lanes:** {lane_line or 'None'}",
+        f"**Prompt profile:** {profile_line}",
         "",
     ]
+    if placeholders:
+        lines.extend(["**Prompt details:** queued; task files land independently", ""])
     if plan.get("modules"):
         lines.extend(["**Modules**", "", render_module_cards(plan, state), ""])
     else:
@@ -479,6 +780,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("plan", type=Path, help="path to plan JSON")
     parser.add_argument("--output-dir", type=Path, help="reuse an existing task-file directory")
+    parser.add_argument(
+        "--placeholders",
+        action="store_true",
+        help="create the index and stable placeholder task files without rendering full prompts",
+    )
     args = parser.parse_args()
 
     plan = load_plan(args.plan)
@@ -502,25 +808,42 @@ def main() -> int:
     lanes = {lane["id"]: lane for lane in plan["lanes"]}
     ready = set(state["ready"])
     for task in plan["tasks"]:
-        content = render_task(
-            plan,
-            task,
-            lanes[task["lane"]],
-            plan.get("dependencies", []),
-            plan.get("collisions", []),
-            ready,
-        )
-        (output_dir / filenames[task["id"]]).write_text(content, encoding="utf-8")
+        path = output_dir / filenames[task["id"]]
+        if args.placeholders:
+            if path.exists() and PLACEHOLDER_MARKER not in path.read_text(encoding="utf-8"):
+                continue
+            content = render_placeholder(plan, task, lanes[task["lane"]], ready)
+        else:
+            content = render_task(
+                plan,
+                task,
+                lanes[task["lane"]],
+                plan.get("dependencies", []),
+                plan.get("collisions", []),
+                ready,
+            )
+        atomic_write_text(path, content)
 
-    (output_dir / INDEX_NAME).write_text(render_index(plan, filenames, ready), encoding="utf-8")
-    (output_dir / MANIFEST_NAME).write_text(json.dumps(filenames, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    summary = render_conversation_summary(plan, filenames, ready, output_dir, state)
+    atomic_write_text(
+        output_dir / INDEX_NAME,
+        render_index(plan, filenames, ready, placeholders=args.placeholders),
+    )
+    atomic_write_text(output_dir / MANIFEST_NAME, json.dumps(filenames, indent=2, sort_keys=True) + "\n")
+    summary = render_conversation_summary(
+        plan,
+        filenames,
+        ready,
+        output_dir,
+        state,
+        placeholders=args.placeholders,
+    )
     print(
         json.dumps(
             {
                 "directory": str(output_dir),
                 "index": str(output_dir / INDEX_NAME),
                 "tasks": filenames,
+                "mode": "placeholders" if args.placeholders else "complete",
                 "conversation_summary": summary,
             },
             indent=2,

@@ -1,4 +1,4 @@
 interface:
   display_name: "Algorithmic Prompting"
   short_description: "Turn goals into parallel, commit-ready work"
-  default_prompt: "Use $algorithmic-prompting to turn this goal into a dependency-aware plan, show what can run in parallel, create the task index and agent prompts, and guide commit and integration decisions."
+  default_prompt: "Use $algorithmic-prompting with lean prompts unless I request another profile. Return a dependency-aware task index first, launch each complete prompt as a fire-and-forget detail task so its file lands independently, and guide later commit and integration decisions."

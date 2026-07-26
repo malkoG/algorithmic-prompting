@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
   "author": {
     "name": "Jaeyeol Lee",
@@ -10,16 +10,17 @@
   "interface": {
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Turn a goal into parallel, commit-ready work.",
-    "longDescription": "Given a software goal and repository, create a task index, dependency graph, ready work batches, bounded coding-agent prompts, and commit and merge handoffs for human-approved parallel execution.",
+    "longDescription": "Given a software goal and repository, return a task index and dependency graph first, let bounded coding-agent prompts land independently, and guide human-approved commit and merge handoffs.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
       "Turn goals into executable work plans",
       "Surface parallel work and prerequisites",
       "Create a clickable task index",
-      "Draft bounded coding-agent prompts",
+      "Choose lean, balanced, or thorough prompt depth",
+      "Land bounded coding-agent prompts asynchronously",
       "Guide commit and integration handoffs"
     ],
-    "defaultPrompt": "Turn this goal into a dependency-aware plan, show what can run in parallel, create the task index and coding-agent prompts, and guide me through commit and integration decisions."
+    "defaultPrompt": "Turn this goal into a dependency-aware plan using lean prompts unless I request another profile. Return the task index first, then launch each complete coding-agent prompt as a fire-and-forget detail task so its file lands independently. Guide me through later commit and integration decisions."
   }
 }

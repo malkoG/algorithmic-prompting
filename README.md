@@ -14,19 +14,26 @@ Dependencies determine what is ready next.
 
 Lane names come from the project rather than a fixed technology or product taxonomy.
 
+```text
+Summary and task index return first
+└── Full task prompts land independently
+```
+
 ## What you get
 
 - A clickable task index for every plan
 - A dependency graph showing parallel and waiting work
-- One bounded coding-agent prompt per commit unit
+- One bounded coding-agent prompt that lands independently per commit unit
 - Clear start, commit, and integration handoffs
+
+Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lean profile keeps each detail job and landed prompt compact; use deeper profiles only where the task benefits from more context and edge cases.
 
 ## Workflow
 
 1. Describe the goal or provide a spec.
-2. Review the proposed lanes, commit units, and dependencies.
-3. Approve the next ready batch.
-4. Integrate completed commits and continue with newly ready work.
+2. Review the scan summary, lanes, commit units, and dependencies.
+3. Open stable task links as full prompts land in parallel.
+4. Approve the next ready batch and integrate completed commits.
 
 ## Install
 

@@ -14,6 +14,7 @@ from pathlib import Path
 DONE = {"completed", "integrated"}
 READY_STATUSES = {"planned", "ready"}
 VALID_STATUSES = READY_STATUSES | {"active", "completed", "integrated", "blocked"}
+PROMPT_PROFILES = {"lean", "balanced", "thorough"}
 
 
 def fail(message: str) -> None:
@@ -42,6 +43,9 @@ def analyze(plan: dict) -> dict:
         fail("tasks must be a non-empty array")
     if not isinstance(modules, list) or not isinstance(edges, list) or not isinstance(collisions, list):
         fail("modules, dependencies, and collisions must be arrays")
+    plan_profile = plan.get("prompt_profile", "lean")
+    if plan_profile not in PROMPT_PROFILES:
+        fail(f"invalid prompt_profile: {plan_profile}")
 
     lane_ids: set[str] = set()
     for lane in lanes:
@@ -105,9 +109,12 @@ def analyze(plan: dict) -> dict:
         status = task.get("status", "planned")
         if status not in VALID_STATUSES:
             fail(f"invalid status for {task_id}: {status}")
-        draft_prompt = task.get("draft_prompt")
-        if not isinstance(draft_prompt, str) or not draft_prompt.strip():
-            fail(f"missing non-empty draft_prompt for {task_id}")
+        task_profile = task.get("prompt_profile", plan_profile)
+        if task_profile not in PROMPT_PROFILES:
+            fail(f"invalid prompt_profile for {task_id}: {task_profile}")
+        prompt_seed = task.get("prompt_seed", task.get("draft_prompt"))
+        if not isinstance(prompt_seed, str) or not prompt_seed.strip():
+            fail(f"missing non-empty prompt_seed for {task_id}")
         by_id[task_id] = task
 
     successors: dict[str, list[str]] = defaultdict(list)

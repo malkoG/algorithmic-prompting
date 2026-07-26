@@ -1,6 +1,8 @@
 # Coding-agent prompt
 
-Create one prompt per atomic commit unit. Omit empty sections.
+This is the source contract used by `scripts/land_task_detail.py` and the complete rendering mode of `scripts/render_task_files.py`. Create one complete prompt per atomic commit unit by combining shared plan fields with the task's concise guidance. Omit empty sections.
+
+`lean` compresses this contract into short Guidance, Scope, Avoid, Done, Checks, and Execution sections. `balanced` and `thorough` retain the expanded structure below; their detail depth follows [prompt-profiles.md](prompt-profiles.md).
 
 ```text
 Implement <TASK_ID>: <OUTCOME>
@@ -18,6 +20,9 @@ Commit unit
 
 Context
 <Only the repository and design context needed for this unit.>
+
+Task-specific guidance
+<The task's prompt_seed. Do not repeat the shared contract here.>
 
 Execution
 <In one or two sentences, state what this unit waits for or the exact base, child branch, and managed worktree it uses. State where the coordinator will integrate the returned commit.>
@@ -58,6 +63,8 @@ Return the child branch, full commit SHA, changed files, validation results, ass
 
 ## Rules
 
+- Reason about shared project and execution facts once in `plan.json`; render them mechanically into every complete prompt.
+- Keep only task-specific implementation judgment in `prompt_seed`.
 - Keep the prompt bounded to one commit unit.
 - Keep implementation and focused tests together.
 - Distinguish predicted paths from an allowlist.

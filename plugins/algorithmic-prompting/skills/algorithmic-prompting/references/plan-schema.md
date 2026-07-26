@@ -6,6 +6,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
 {
   "goal": "Add a language feature",
   "goal_slug": "language-feature",
+  "prompt_profile": "lean",
   "lanes": [
     {
       "id": "PARSER",
@@ -59,7 +60,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
       "validation": ["run focused parser tests"],
       "completion_gate": "Focused parser tests pass",
       "assigned_branch": "task/language-feature/parser",
-      "draft_prompt": "Recognize the new syntax and cover it with focused parser tests."
+      "prompt_seed": "Recognize the new syntax and preserve existing recovery behavior. Cover accepted and rejected forms with focused parser tests."
     },
     {
       "id": "CHECKER-01",
@@ -71,7 +72,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
       "validation": ["run focused semantic-analysis tests"],
       "completion_gate": "Focused semantic-analysis tests pass",
       "assigned_branch": "task/language-feature/checker",
-      "draft_prompt": "Validate the new semantics against the accepted representation contract."
+      "prompt_seed": "Validate the new semantics against the accepted representation contract and preserve existing diagnostics."
     },
     {
       "id": "EMITTER-01",
@@ -83,7 +84,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
       "validation": ["run focused emitter tests"],
       "completion_gate": "Focused emitter tests pass",
       "assigned_branch": "task/language-feature/emitter",
-      "draft_prompt": "Emit the new construct against the accepted output contract."
+      "prompt_seed": "Emit the new construct against the accepted output contract without changing unrelated output."
     },
     {
       "id": "VERIFY-01",
@@ -95,7 +96,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
       "validation": ["run language integration tests"],
       "completion_gate": "Language integration tests pass",
       "assigned_branch": "task/language-feature/verify",
-      "draft_prompt": "Verify the integrated parser, checker, and emitter outputs."
+      "prompt_seed": "Verify the integrated parser, checker, and emitter outputs across successful and rejected programs."
     }
   ],
   "dependencies": [
@@ -124,7 +125,11 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
 - Lane IDs are unique uppercase alphanumeric names derived from project boundaries.
 - Each lane has a scope, predicted paths or components, validation profile, input, and output.
 - Task IDs use `<LANE>-<NN>` and reference a declared lane.
-- Each task maps to one atomic commit and has a commit intent, validation, completion gate, and draft prompt.
+- `prompt_profile` is `lean` by default, or `balanced` / `thorough`. A task may override the plan profile.
+- Each task maps to one atomic commit and has a commit intent, validation, completion gate, and `prompt_seed`.
+- `prompt_seed` holds only task-specific implementation judgment. The renderer adds the full lane, dependency, scope, branch, validation, commit, and handoff contract.
+- Each detail job supplies the compact `guidance`, `scope`, `files`, `done`, and `checks` delta when atomically replacing its placeholder.
+- Legacy plans using `draft_prompt` remain accepted.
 - Status is `planned`, `ready`, `active`, `completed`, `integrated`, or `blocked`.
 - Dependencies point from prerequisite to successor.
 - Only incomplete prerequisite edges contribute to readiness. `completed` and `integrated` predecessors are removed.
