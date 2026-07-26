@@ -4,9 +4,9 @@ Use one independent subagent per prompt-detail task after the index and placehol
 
 ## Assignment
 
-Give the detail agent the shared plan path, output directory, assigned task ID, lane contract, repository guidance, prerequisites, collision hints, and likely paths. It should inspect only enough context to make the task executable.
+Give the detail agent the shared plan path, output directory, assigned task ID, lane contract, repository guidance, map evidence, prerequisites, collision hints, and likely paths. It should verify the provisional map against actual code and inspect deeply enough to make the task executable.
 
-This is read-only planning. Do not edit the repository, create branches or worktrees, implement code, commit, or modify the shared plan, index, manifest, or sibling files.
+Do not blindly trust stale or conflicting map files; report uncertainties and proposed dependency or collision corrections. This is read-only planning. Do not edit the repository, create branches or worktrees, implement code, commit, or modify the shared plan, index, manifest, or sibling files.
 
 ## Compact result
 

@@ -6,6 +6,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
 {
   "goal": "Add a language feature",
   "goal_slug": "language-feature",
+  "topology_status": "provisional",
   "prompt_profile": "lean",
   "lanes": [
     {
@@ -123,6 +124,7 @@ Use this shape when persisting a plan. This example uses compiler boundaries to 
 ## Rules
 
 - Lane IDs are unique uppercase alphanumeric names derived from project boundaries.
+- Use `topology_status: provisional` for the initial map-first plan. Promote it only after graph evidence has been reviewed.
 - Each lane has a scope, predicted paths or components, validation profile, input, and output.
 - Task IDs use `<LANE>-<NN>` and reference a declared lane.
 - `prompt_profile` is `lean` by default, or `balanced` / `thorough`. A task may override the plan profile.

@@ -280,6 +280,7 @@ def render_placeholder(plan: dict, task: dict, lane: dict, ready: set[str]) -> s
 - Lane scope: {one_line(lane.get('scope'))}
 - Execution status: {status}
 - Prompt status: detailing
+- Topology status: {one_line(plan.get('topology_status'), 'provisional')}
 - Prompt profile: {task_prompt_profile(plan, task)}
 - Commit intent: {one_line(task.get('commit_intent'), task.get('title', 'Task outcome'))}
 
@@ -738,7 +739,13 @@ def render_conversation_summary(
         "",
     ]
     if placeholders:
-        lines.extend(["**Prompt details:** queued; task files land independently", ""])
+        lines.extend(
+            [
+                f"**Topology:** {one_line(plan.get('topology_status'), 'provisional')}; detail subagents verify dependencies and collisions",
+                "**Prompt details:** queued; task files land independently",
+                "",
+            ]
+        )
     if plan.get("modules"):
         lines.extend(["**Modules**", "", render_module_cards(plan, state), ""])
     else:

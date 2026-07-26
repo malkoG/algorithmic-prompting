@@ -21,7 +21,7 @@ Derive lane names from the project. Do not impose a fixed technology or product 
 
 ## Build the plan
 
-1. Inspect the request, repository guidance, relevant design documents, and only enough affected-code entry points to locate ownership boundaries.
+1. Run the map-first scan in [references/map-first-scan.md](references/map-first-scan.md). Start with repository instructions, design and convention documents, schemas and contracts, build metadata, and file structure.
 2. Choose the fewest broad lanes that expose safe parallel work. Give each lane a clear input, ownership boundary, validation profile, and mergeable output.
 3. Split each lane into the fewest atomic commit units that make the history understandable and revertible, usually one to three.
 4. Give every unit a stable `<LANE>-<NN>` coordination ID and a human-readable commit intent.
@@ -29,7 +29,7 @@ Derive lane names from the project. Do not impose a fixed technology or product 
 6. Record likely file overlap as a collision, not automatically as a dependency.
 7. Reject cycles. If a collapsed lane graph cycles, merge coupled lanes or isolate a small shared prerequisite.
 
-Keep this scan compact. Record a short `prompt_seed` for each task rather than producing its complete prompt during the scan.
+Keep this scan compact and mark its topology `provisional`. Read at most one implementation anchor per unclear lane; defer task-local code comprehension and graph verification to detail subagents. Record a short `prompt_seed` for each task rather than producing its complete prompt during the scan.
 
 ## Choose prompt depth
 
@@ -56,8 +56,8 @@ This must create `00-task-index.md`, `.task-files.json`, and one lightweight tas
 Follow [references/detail-agent-contract.md](references/detail-agent-contract.md). Use subagents for the independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch.
 
 1. Spawn one subagent per prompt-detail task after all placeholders exist. Each subagent owns only its assigned detail result and task file.
-2. Give each job the shared plan path, output directory, its task ID, prompt profile, lane contract, repository guidance, hard prerequisites, collision hints, and likely paths. Prefer bounded task-local context over full conversation history.
-3. Keep detail work read-only with respect to the repository. Do not implement code, create branches or worktrees, or commit changes.
+2. Give each job the shared plan path, output directory, its task ID, prompt profile, lane contract, repository guidance, map evidence, hard prerequisites, collision hints, and likely paths. Prefer bounded task-local context over full conversation history.
+3. Have each subagent verify the provisional map against actual implementation and inspect deeply enough for thorough task comprehension. Keep detail work read-only with respect to the repository; do not implement code, create branches or worktrees, or commit changes.
 4. Have each job write one structured detail result to a unique temporary path, then run:
 
 ```text

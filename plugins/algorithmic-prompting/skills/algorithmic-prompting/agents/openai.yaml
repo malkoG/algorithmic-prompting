@@ -1,4 +1,4 @@
 interface:
   display_name: "Algorithmic Prompting"
   short_description: "Turn goals into parallel, commit-ready work"
-  default_prompt: "Use $algorithmic-prompting with lean prompts unless I request another profile. Return the task index first. Use subagents for the independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch. Guide later commit and integration decisions."
+  default_prompt: "Use $algorithmic-prompting with a fast map-first scan and lean prompts unless requested otherwise. Return the provisional task index first. Use subagents for thorough implementation verification and independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch."

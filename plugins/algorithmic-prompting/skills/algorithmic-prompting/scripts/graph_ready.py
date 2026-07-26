@@ -15,6 +15,7 @@ DONE = {"completed", "integrated"}
 READY_STATUSES = {"planned", "ready"}
 VALID_STATUSES = READY_STATUSES | {"active", "completed", "integrated", "blocked"}
 PROMPT_PROFILES = {"lean", "balanced", "thorough"}
+TOPOLOGY_STATUSES = {"provisional", "reviewed"}
 
 
 def fail(message: str) -> None:
@@ -46,6 +47,9 @@ def analyze(plan: dict) -> dict:
     plan_profile = plan.get("prompt_profile", "lean")
     if plan_profile not in PROMPT_PROFILES:
         fail(f"invalid prompt_profile: {plan_profile}")
+    topology_status = plan.get("topology_status", "provisional")
+    if topology_status not in TOPOLOGY_STATUSES:
+        fail(f"invalid topology_status: {topology_status}")
 
     lane_ids: set[str] = set()
     for lane in lanes:

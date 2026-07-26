@@ -6,8 +6,9 @@ Turn a software goal into parallel, commit-ready work that coding agents can exe
 
 ```text
 Goal
-└── Lanes — work that can proceed independently
-    └── Commit units — one task, one prompt, one commit
+└── Map-first scan — architecture files, schemas, and file structure
+    └── Provisional lanes — work that can proceed independently
+        └── Commit units — one task, one prompt, one commit
 
 Dependencies determine what is ready next.
 ```
@@ -16,12 +17,13 @@ Lane names come from the project rather than a fixed technology or product taxon
 
 ```text
 Summary and task index return first
-└── Concurrent subagents land full task prompts independently
+└── Concurrent subagents verify code and land full task prompts independently
 ```
 
 ## What you get
 
 - A clickable task index for every plan
+- A fast provisional topology derived from high-information repository maps
 - A dependency graph showing parallel and waiting work
 - One bounded coding-agent prompt that lands independently per commit unit
 - Concurrent prompt-detail subagents with no coordinator fan-in
@@ -32,7 +34,7 @@ Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lea
 ## Workflow
 
 1. Describe the goal or provide a spec.
-2. Review the scan summary, lanes, commit units, and dependencies.
+2. Review the provisional map-first summary, lanes, commit units, and dependencies.
 3. Open stable task links as full prompts land in parallel.
 4. Approve the next ready batch and integrate completed commits.
 
