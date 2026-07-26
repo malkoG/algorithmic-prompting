@@ -47,6 +47,8 @@ Validation
 
 Handoff
 Create the requested focused commit only when commit authorization is present. Return the child branch, commit SHA, concise summary of changes, files touched, validations run and their results, assumptions, and remaining risks. Do not merge, rebase, push, or delete the worktree or branch. Stop and report if a prerequisite is unavailable, the requested scope materially expands, or a collision makes the task unsafe to continue.
+
+Make the child branch and full commit SHA explicit so the coordinator can report `Merge: <child branch> @ <full commit SHA> → <target branch>`. A worktree name or path is diagnostic context, not a merge identity.
 ```
 
 ## Prompt rules

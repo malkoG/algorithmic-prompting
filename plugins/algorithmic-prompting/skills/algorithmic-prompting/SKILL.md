@@ -50,6 +50,16 @@ Each prompt must include:
 
 Express workspace metadata as one or two short natural-language sentences under `Execution`; never ask the human to fill a dispatch form. Derive the sentences from the human's coordination decision. Include blocking task IDs only when waiting. When branch creation is authorized, name the exact base branch and SHA and the exact child branch. Say where the coordinator will merge the returned commit. Omit default strategy language; mention stacking or an unresolved integration choice only when it changes execution.
 
+Keep human-facing Kahn coordination to these compact lines when applicable:
+
+```text
+Start: <task IDs> from <base branch>
+Merge: <child branch> @ <full commit SHA> → <target branch>
+Next: <newly ready task IDs | none>
+```
+
+Use the child branch plus exact commit SHA as the merge identity. The branch is recognizable; the SHA pins the reviewed result. Never use a worktree name or path as the merge target. Omit any line that is not yet applicable and avoid explanatory prose unless a collision, stack, or ambiguity needs a decision.
+
 Tell the coding agent to work only on the assigned subtask, preserve unrelated user changes, follow repository instructions, and stop to report a missing prerequisite or materially expanded scope. A planning-time draft must not authorize branch creation. After HITL approves dispatch, the final prompt may authorize creation of exactly one assigned child branch from an exact base SHA; it must not authorize any alternate branch, merging, pushing, or unrelated cleanup. Never hide unresolved HITL choices inside a prompt; label them for the human before dispatch.
 
 ## Use clickable task files for large plans
@@ -74,11 +84,11 @@ At each iteration:
 
 1. Present the zero-indegree ready queue globally and grouped by lane.
 2. Show collision warnings among ready tasks and with active tasks.
-3. Propose one or more parallel batches. Prefer lane diversity among equally safe tasks, keep hard-dependent tasks in different iterations, and label same-file merge risks with a proposed integration order. Explain the manual move in plain language: what to start now, what base to start from, where each commit should merge, and what that merge unlocks.
+3. Propose one or more parallel batches. Prefer lane diversity among equally safe tasks, keep hard-dependent tasks in different iterations, and label same-file merge risks with a proposed integration order. Use the compact `Start`, `Merge`, and `Next` lines above instead of prose.
 4. Ask the human to select or approve the next batch and resolve any ambiguous ordering. Accept a natural-language answer such as "Start API-01 and WEB-01 from main; merge API-01 first." Interpret it, then reflect the normalized start points and merge order concisely. Ask a follow-up only when branch, base, or ordering remains materially ambiguous. Do not require a structured response. Do not create worktrees, delegate implementation, merge, or mark work complete without authorization covering that action.
 5. For an approved batch, refresh each selected draft prompt with the approved base branch and SHA, child branch, branch-creation mode, worktree, current prerequisite state, sibling ownership, validation commands, and integration gate. Present the final prompts for human approval before dispatch.
-6. After implementation, verify each task's completion gate. Ask for or record human acceptance, then mark the task `completed` or `integrated` as appropriate.
-7. Remove only accepted prerequisite nodes from the working graph, decrement successor indegrees, and present the newly unlocked queue.
+6. After implementation, verify each task's completion gate. Ask for or record human acceptance, then mark the task `completed` or `integrated` as appropriate. Show `Merge: <child branch> @ <full commit SHA> → <target branch>`; never substitute the worktree name.
+7. Remove only accepted prerequisite nodes from the working graph, decrement successor indegrees, and present the newly unlocked queue as `Next: <task IDs>`.
 8. Continue until all tasks are accepted or no node is ready. If unfinished nodes remain with no ready node, report a cycle, rejected completion gate, or external blocker.
 
 A hard-dependent successor becomes eligible only when the predecessor's output is available to it. Normally this means the predecessor is integrated into the shared base. A stacked branch based on the predecessor may also satisfy the gate when the human explicitly chooses that strategy.
