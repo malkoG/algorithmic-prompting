@@ -6,9 +6,11 @@ A ChatGPT and Codex plugin for decomposing implementation goals into a few broad
 
 - Architecture lanes such as `API`, `WEB`, and `SDK`
 - Broad lanes with input, ownership, validation, and output contracts
-- One worktree, branch, coarse task, and coding-agent prompt per lane by default
+- One worktree and branch per lane, with usually one to three atomic commit units
 - A collapsed lane DAG with intentionally sparse dependencies
 - Minimal task splitting: only for real prerequisite, ownership, merge, rollback, or validation boundaries
+- One-to-one mapping from task nodes to reviewable and revertible commits
+- Implementation and focused tests stay in the same commit unit
 - Stable lane-aware task IDs
 - Hard dependency DAGs and file-collision constraints
 - Conversation-ready Mermaid topology
@@ -24,7 +26,7 @@ A ChatGPT and Codex plugin for decomposing implementation goals into a few broad
 Lane: API
 Input: approved auth contract
 Owns: api/auth/**
-Task: API-01
+Commits: verify credentials → issue sessions
 Output: authenticated endpoint
 Merge: task/authentication/api @ <full commit SHA> → feature/authentication
 Next: SDK, WEB

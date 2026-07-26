@@ -97,6 +97,7 @@ def render_task(
 - Dependencies: {', '.join(predecessors) if predecessors else 'None'}
 - Waiting for: {', '.join(waiting_for) if waiting_for else 'None'}
 - Assigned branch: {one_line(task.get('assigned_branch'), 'Coordinator will assign')}
+- Commit intent: {one_line(task.get('commit_intent'), task.get('title', 'Task outcome'))}
 
 ## Outcome
 
@@ -127,6 +128,7 @@ def render_task(
 ## Commit contract
 
 - End this successfully validated task with exactly one focused commit.
+- Keep this task node and its resulting commit one-to-one; do not combine or split it.
 - Do not mention internal task or graph identifiers in the commit message.
 - Use an outcome-based subject, a blank line, and two to four bullet lines.
 

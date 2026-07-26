@@ -52,18 +52,32 @@ Use this compact shape when a persistent or script-validated plan is useful:
     {
       "id": "API-01",
       "lane": "API",
-      "title": "Expose the authentication endpoint",
+      "title": "Validate authentication requests",
+      "commit_intent": "Validate authentication requests",
       "status": "planned",
-      "files": ["api/auth.ts"],
-      "validation": ["run focused authentication API tests"],
-      "completion_gate": "Authentication API tests pass",
+      "files": ["api/auth.ts", "api/auth.test.ts"],
+      "validation": ["run focused request-validation tests"],
+      "completion_gate": "Request-validation tests pass",
       "assigned_branch": "task/authentication/api",
       "draft_prompt": "Implement API-01 in the API lane..."
+    },
+    {
+      "id": "API-02",
+      "lane": "API",
+      "title": "Issue authenticated sessions",
+      "commit_intent": "Issue authenticated sessions",
+      "status": "planned",
+      "files": ["api/auth.ts", "api/auth.test.ts"],
+      "validation": ["run focused session tests"],
+      "completion_gate": "Session issuance tests pass",
+      "assigned_branch": "task/authentication/api",
+      "draft_prompt": "Implement API-02 after API-01 on the API lane branch..."
     },
     {
       "id": "SDK-01",
       "lane": "SDK",
       "title": "Add the authentication client",
+      "commit_intent": "Add the authentication client",
       "status": "planned",
       "files": ["sdk/auth.ts"],
       "validation": ["run focused SDK tests"],
@@ -75,6 +89,7 @@ Use this compact shape when a persistent or script-validated plan is useful:
       "id": "WEB-01",
       "lane": "WEB",
       "title": "Connect the sign-in form",
+      "commit_intent": "Connect the sign-in form",
       "status": "planned",
       "files": ["web/sign-in.tsx"],
       "validation": ["run focused sign-in UI tests"],
@@ -86,6 +101,7 @@ Use this compact shape when a persistent or script-validated plan is useful:
       "id": "INT-01",
       "lane": "INT",
       "title": "Verify the integrated authentication flow",
+      "commit_intent": "Verify the integrated authentication flow",
       "status": "planned",
       "files": ["tests/integration/auth/**"],
       "validation": ["run authentication integration tests"],
@@ -95,7 +111,8 @@ Use this compact shape when a persistent or script-validated plan is useful:
     }
   ],
   "dependencies": [
-    {"from": "API-01", "to": "INT-01", "reason": "Integration consumes the API output"},
+    {"from": "API-01", "to": "API-02", "reason": "Session issuance builds on request validation"},
+    {"from": "API-02", "to": "INT-01", "reason": "Integration consumes the API output"},
     {"from": "SDK-01", "to": "INT-01", "reason": "Integration consumes the SDK output"},
     {"from": "WEB-01", "to": "INT-01", "reason": "Integration consumes the Web output"}
   ],
@@ -106,8 +123,9 @@ Use this compact shape when a persistent or script-validated plan is useful:
 ## Field rules
 
 - Define a small number of broad lanes. Give each lane a unique uppercase alphanumeric `id`, input, scope, owned paths or components, output, validation profile, base branch, and assigned child branch.
-- Treat each lane as the default worktree and merge unit. Aim for one coarse task per lane.
-- Split a lane only for a hard prerequisite, separate owner, separate merge or rollback boundary, or independently valuable validation gate. Do not create tasks for routine steps or individual files.
+- Treat each lane as the default worktree and merge unit. Split it into the fewest atomic commit units that make the history reviewable and revertible, usually one to three.
+- Map every task one-to-one to a commit and record a human-readable `commit_intent` without its coordination ID. Split for independently meaningful behavior, a prerequisite, owner handoff, merge or rollback boundary, or validation gate—not for routine steps or individual files.
+- Keep implementation and its focused tests together. Avoid standalone scaffolding, formatting, generated-output, or test-only commits unless independently valuable.
 - Add `modules` only when one lane contains multiple independently mergeable outputs. Give each module a stable uppercase kebab ID, one lane, an input contract, ownership, validation, and output. When modules exist, assign every task to one in the same lane.
 - Keep task IDs unique and stable in `<LANE>-<NN>` form. The task's `lane` must match its ID prefix and reference a declared lane.
 - Use `CORE` for a plan where no meaningful multi-lane partition exists.

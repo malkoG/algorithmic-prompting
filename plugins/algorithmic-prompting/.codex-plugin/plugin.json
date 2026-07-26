@@ -1,7 +1,7 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.4.1",
-  "description": "Partition work into broad parallel lanes with minimal task splitting, then schedule lane DAGs across worktrees.",
+  "version": "0.4.2",
+  "description": "Partition work into broad parallel lanes and a small number of atomic commit-sized subtasks.",
   "author": {
     "name": "Jaeyeol Lee",
     "email": "jaeyeol.lee@hey.com"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Algorithmic Prompting",
     "shortDescription": "Plan parallel worktrees and draft bounded agent prompts.",
-    "longDescription": "Partition implementation goals into the fewest broad lanes that expose safe parallelism; default to one worktree, branch, task, and coding-agent prompt per lane; derive a collapsed lane DAG; avoid unnecessary microtasks; and advance work through human-approved Kahn scheduling.",
+    "longDescription": "Partition implementation goals into broad parallel lanes, then split each lane into the fewest atomic commits needed for reviewable and revertible history; map every task one-to-one to a commit and coding-agent prompt; derive lane and commit DAGs; and advance work through human-approved Kahn scheduling.",
     "developerName": "Jaeyeol Lee",
     "category": "Productivity",
     "capabilities": [
@@ -18,6 +18,7 @@
       "Architecture lane partitioning",
       "Broad execution-lane decomposition",
       "Minimal task splitting",
+      "Atomic commit-wise decomposition",
       "Lane-level Kahn scheduling",
       "One structured commit per dispatched task",
       "Conversation-ready Mermaid topology",
@@ -26,6 +27,6 @@
       "Worktree scheduling",
       "HITL Kahn coordination"
     ],
-    "defaultPrompt": "Partition this goal into the fewest broad lanes that maximize safe parallel work, default to one task and prompt per lane, guide manual Kahn execution, and require one outcome-based commit with a short bullet body per dispatched task without internal graph IDs."
+    "defaultPrompt": "Partition this goal into broad parallel lanes, split each lane into the fewest atomic commit-sized tasks, map every task one-to-one to an outcome-based commit without internal graph IDs, and guide manual Kahn execution."
   }
 }

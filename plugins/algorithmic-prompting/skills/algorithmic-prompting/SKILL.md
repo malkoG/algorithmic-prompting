@@ -1,6 +1,6 @@
 ---
 name: algorithmic-prompting
-description: Partition software work into a small number of broad, parallel execution lanes; avoid unnecessary subtask splitting; derive lane and task dependency DAGs; generate bounded coding-agent prompts; and coordinate human-in-the-loop Kahn scheduling across Git worktrees. Use for implementation plans, tech specs, ADRs, issue breakdowns, coding-agent delegation, parallel agent work, coarse worktree scheduling, merge-order planning, or dependency-graph reviews.
+description: Partition software work into broad parallel execution lanes, then split each lane into a small number of atomic commit-sized subtasks; derive lane and commit dependency DAGs; generate bounded coding-agent prompts; and coordinate human-in-the-loop Kahn scheduling across Git worktrees. Use for implementation plans, tech specs, ADRs, issue breakdowns, coding-agent delegation, parallel agent work, commit-wise planning, worktree scheduling, merge-order planning, or dependency-graph reviews.
 ---
 
 # Algorithmic Prompting
@@ -12,8 +12,8 @@ Turn a goal into a reviewable DAG and advance it only through explicit human dec
 1. Inspect the request, relevant tech specs or ADRs, repository guidance, and affected code. Do not require a formal design document.
 2. Identify the fewest broad execution lanes that expose meaningful parallelism, usually two to six. Preserve useful names such as `API`, `WEB`, and `SDK`; use repository-specific capability names when they create cleaner ownership.
 3. Give every lane a clear input, exclusive or low-collision ownership, independent validation, and one mergeable output. Prefer lanes that can start from the same base and finish without waiting for sibling implementation details.
-4. Default to one coarse task and one coding-agent prompt per lane. Split a lane only when a hard prerequisite, separate merge or rollback boundary, different owner, or independently valuable validation gate makes separate dispatch useful. Do not split merely because several files or implementation steps exist.
-5. Use an optional module only when one lane truly contains multiple independently mergeable outputs. Keep it out of simple plans. Give every retained task a stable lane-aware ID such as `API-01`, `WEB-01`, or `SDK-01`.
+4. Split each lane into the fewest atomic commit units that make the history reviewable and revertible, usually one to three. Create a separate task for an independently meaningful behavior, prerequisite, owner handoff, merge or rollback boundary, or validation gate. Do not split merely because several files or routine steps exist.
+5. Map every retained task one-to-one to a planned commit and record a human-readable `commit_intent` without the task ID. Use an optional module only when one lane truly contains multiple independently mergeable outputs. Give every task a stable lane-aware ID such as `API-01`, `WEB-01`, or `SDK-01`.
 6. Classify relationships:
    - Add a hard directed edge `A -> B` only when B needs A's result before it can satisfy its completion gate.
    - Record a file collision when tasks may touch the same file or tightly coupled generated artifact.
@@ -38,9 +38,10 @@ Use `references/plan-schema.md` when persisting a machine-readable plan. Run `sc
 
 ## Keep the hierarchy shallow
 
-- Prefer `goal → lanes` for most plans. Use `goal → lanes → tasks` only where a lane needs an explicit local sequence.
-- Aim for one task per lane. Two or three tasks are acceptable when they expose a real gate; a long checklist belongs inside the lane prompt, not in the graph.
+- Prefer `goal → lanes → commit units`. Keep most lanes to one to three commit units; use one when the lane is already atomic.
+- Split only when the resulting commits are independently understandable and revertible. Keep inseparable implementation and its focused tests in the same commit.
 - Do not create a node for routine implementation steps, individual files, test files, or expected refactors that the same agent can complete safely in one worktree.
+- Do not create standalone commits for scaffolding, formatting, generated output, or tests unless they are independently valuable changes.
 - Use modules only as an escape hatch for a genuinely large lane. Never add modules merely to make the graph look more structured.
 - If two proposed lanes share a hotspot or require constant coordination, merge them. If one small contract unlocks many lanes, isolate that contract and keep the downstream lanes broad.
 
@@ -50,19 +51,20 @@ Use this compact lane card in conversation and prompts. Omit an inapplicable `Me
 Lane: API
 Input: approved auth contract
 Owns: api/auth/**
-Task: API-01
+Commits: verify credentials → issue sessions
 Output: authenticated endpoint
 Merge: task/authentication/api @ <full commit SHA> → feature/authentication
 Next: SDK, WEB
 ```
 
-## Draft one coding-agent prompt per lane
+## Draft one coding-agent prompt per commit unit
 
-Generate one coarse prompt per lane by default, including lanes that are not ready yet. If a lane was intentionally split for a real gate, generate one prompt per separately dispatched task. Make each prompt independently understandable and easy for the human to edit before dispatch. Follow `references/coding-agent-prompt.md`.
+Generate one prompt per planned commit unit, including tasks that are not ready yet. A lane that needs one commit gets one prompt; a lane with two or three meaningful commits gets one prompt for each. Make each prompt independently understandable and easy for the human to edit before dispatch. Follow `references/coding-agent-prompt.md`.
 
 Each prompt must include:
 
 - The stable lane-aware task ID, lane, title, and concrete outcome.
+- A human-readable commit intent that does not contain the task ID.
 - Its lane input-to-output contract, exclusive ownership, and compact internal checklist. Mention a module only when one actually exists.
 - Relevant repository and product context without copying the entire parent request.
 - The prerequisite gate and whether the task is currently ready. For a blocked task, say exactly what must become available before it starts.
@@ -89,7 +91,7 @@ Tell the coding agent to work only on the assigned subtask, preserve unrelated u
 
 ## End every dispatched task with a commit
 
-- Require exactly one focused commit after a separately dispatched task passes validation. A broad lane with an internal checklist still produces one lane commit; intentionally separate task prompts each produce their own commit.
+- Require exactly one focused commit after each dispatched task passes validation. The task graph and successful commit series must have a one-to-one mapping.
 - Treat graph IDs such as `API-01`, `WEB-02`, and module IDs as coordination metadata. Never include them as labels in the commit subject, body, or trailers. Natural product and architecture terms remain fine.
 - Write a human-readable imperative subject describing the outcome, then a blank line and two to four `-` bullet lines describing meaningful changes and validation.
 - Derive the message from the actual diff. Do not use generic subjects such as `Complete task`, repeat the branch name, or mention the worktree.
@@ -125,11 +127,11 @@ Calculate indegrees from incomplete hard-prerequisite edges only. A lane is glob
 
 At each iteration:
 
-1. Present the zero-indegree lane queue. Show local task queues only for lanes that were intentionally split.
+1. Present the zero-indegree lane queue and the ready commit units inside each lane.
 2. Show collision warnings among ready tasks and with active tasks.
 3. Propose the widest safe parallel lane batch. Keep hard-dependent lanes in different iterations and label merge risks with a proposed integration order. Use the compact lane card plus `Start`, `Merge`, and `Next` lines instead of prose.
 4. Ask the human to select or approve the next batch and resolve any ambiguous ordering. Accept a natural-language answer such as "Start API-01 and WEB-01 from main; merge API-01 first." Interpret it, then reflect the normalized start points and merge order concisely. Ask a follow-up only when branch, base, or ordering remains materially ambiguous. Do not require a structured response. Do not create worktrees, delegate implementation, merge, or mark work complete without authorization covering that action.
-5. For an approved lane batch, allocate one child branch and worktree per lane. Refresh each selected lane prompt with its approved base branch and SHA, lane child branch, branch-creation mode, worktree, prerequisite state, sibling ownership, validation commands, integration gate, and the commit contract above. Present final prompts for human approval before dispatch.
+5. For an approved lane batch, allocate one child branch and worktree per lane. Refresh each selected commit-unit prompt with its approved base branch and SHA, lane child branch, branch-creation mode, worktree, prerequisite state, sibling ownership, validation commands, integration gate, commit intent, and the commit contract above. Present final prompts for human approval before dispatch.
 6. After implementation, require the successful task's focused commit, verify its completion gate, and record the full commit SHA. Ask for or record human acceptance, then mark the task `completed` or `integrated` as appropriate. Show `Merge: <child branch> @ <full commit SHA> → <target branch>`; never substitute the worktree name.
 7. Remove only accepted prerequisite nodes from the working graph, decrement successor indegrees, and present the newly unlocked queue as `Next: <task IDs>`.
 8. Continue until all tasks are accepted or no node is ready. If unfinished nodes remain with no ready node, report a cycle, rejected completion gate, or external blocker.
@@ -139,7 +141,8 @@ A hard-dependent successor becomes eligible only when the predecessor's output i
 ## Worktree scheduling rules
 
 - Assign one broad, independently mergeable lane per worktree by default.
-- End every separately dispatched task in that worktree with exactly one focused commit. Do not combine separately dispatched sibling tasks into one commit.
+- Execute that lane's ready tasks as an ordered atomic commit series on the lane branch. End every dispatched task with exactly one focused commit; never squash separate task nodes into one implementation commit.
+- When two tasks in one lane are genuinely independent and separately dispatched, give them separate branches or worktrees instead of letting concurrent agents write the same lane branch.
 - Prefer independent zero-indegree tasks for parallel worktrees.
 - Name lane branches in a namespace separate from the parent branch as `task/<goal-slug>/<lane-id-lower>`, for example `task/authentication/api`. Use a more specific task suffix only when a lane was intentionally split into separate worktrees. If `feature/authentication` exists, never propose `feature/authentication/api`; Git cannot use an existing branch ref as a directory prefix.
 - Let the coordinator allocate and validate every branch name. If worker-managed creation is approved, authorize the worker to create only that exact branch from the recorded base SHA.
@@ -155,12 +158,12 @@ A hard-dependent successor becomes eligible only when the predecessor's output i
 Provide the following compact sections:
 
 1. **Lane map** — lane ID, input, ownership, output, validation, branch, status, and downstream lanes.
-2. **Minimal task inventory** — normally one task per lane; include extra tasks only with the split reason.
+2. **Commit-unit inventory** — task ID, lane, commit intent, outcome, validation, status, and the reason for every multi-commit split.
 3. **Hard dependencies** — retained task edges and the derived cross-lane edges.
 4. **Collision constraints** — lane or task pairs, overlapping surface, risk, and proposed merge order if known.
 5. **Topology** — the collapsed lane Mermaid DAG, plus local task topology only where useful.
 6. **Kahn state** — completed lanes, lane indegrees, global ready lanes, and proposed parallel batch.
-7. **Draft coding-agent prompts** — one copy-ready prompt per lane or separately dispatched task.
+7. **Draft coding-agent prompts** — one copy-ready prompt per planned commit unit.
 8. **Human decision** — the smallest explicit choice needed to advance the graph.
 
 State assumptions and confidence when file ownership or prerequisites are inferred. Keep the graph editable: incorporate human corrections, recompute indegrees, and preserve stable task IDs.
