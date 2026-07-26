@@ -1,91 +1,118 @@
 # Plan JSON schema
 
-Use this shape when persisting a plan. Replace the neutral lane names with boundaries from the project.
+Use this shape when persisting a plan. This example uses compiler boundaries to make lane ownership concrete; derive names from the actual project.
 
 ```json
 {
-  "goal": "Deliver the requested change",
-  "goal_slug": "requested-change",
+  "goal": "Add a language feature",
+  "goal_slug": "language-feature",
   "lanes": [
     {
-      "id": "PART1",
-      "scope": "First independent responsibility",
-      "input": "Accepted requirements",
-      "paths": ["path/owned/by/part-one/**"],
-      "output": "Validated first output",
-      "validation": ["run checks for the first responsibility"],
+      "id": "PARSER",
+      "scope": "Syntax recognition",
+      "input": "Accepted grammar and syntax-tree contract",
+      "paths": ["compiler/parser/**"],
+      "output": "Parsed representation of the new syntax",
+      "validation": ["run parser tests"],
       "base_branch": "main",
-      "assigned_branch": "task/requested-change/part1"
+      "assigned_branch": "task/language-feature/parser"
     },
     {
-      "id": "PART2",
-      "scope": "Second independent responsibility",
-      "input": "Accepted requirements",
-      "paths": ["path/owned/by/part-two/**"],
-      "output": "Validated second output",
-      "validation": ["run checks for the second responsibility"],
+      "id": "CHECKER",
+      "scope": "Semantic analysis",
+      "input": "Accepted semantic rules and typed-representation contract",
+      "paths": ["compiler/checker/**"],
+      "output": "Validated semantics for the new construct",
+      "validation": ["run semantic-analysis tests"],
       "base_branch": "main",
-      "assigned_branch": "task/requested-change/part2"
+      "assigned_branch": "task/language-feature/checker"
+    },
+    {
+      "id": "EMITTER",
+      "scope": "Output generation",
+      "input": "Accepted output semantics and intermediate-representation contract",
+      "paths": ["compiler/emitter/**"],
+      "output": "Generated output for the new construct",
+      "validation": ["run emitter tests"],
+      "base_branch": "main",
+      "assigned_branch": "task/language-feature/emitter"
     },
     {
       "id": "VERIFY",
-      "scope": "Combined verification",
-      "input": "Integrated outputs from PART1 and PART2",
-      "paths": ["path/owned/by/verification/**"],
-      "output": "Verified combined result",
-      "validation": ["run combined checks"],
+      "scope": "Integrated language behavior",
+      "input": "Integrated parser, checker, and emitter outputs",
+      "paths": ["compiler/integration-tests/**"],
+      "output": "Verified end-to-end language feature",
+      "validation": ["run language integration tests"],
       "base_branch": "main",
-      "assigned_branch": "task/requested-change/verify"
+      "assigned_branch": "task/language-feature/verify"
     }
   ],
   "tasks": [
     {
-      "id": "PART1-01",
-      "lane": "PART1",
-      "title": "Produce the first atomic outcome",
-      "commit_intent": "Produce the first atomic outcome",
+      "id": "PARSER-01",
+      "lane": "PARSER",
+      "title": "Recognize the new syntax",
+      "commit_intent": "Recognize the new syntax",
       "status": "planned",
-      "files": ["path/owned/by/part-one/**"],
-      "validation": ["run focused checks"],
-      "completion_gate": "Focused checks pass",
-      "assigned_branch": "task/requested-change/part1",
-      "draft_prompt": "Complete the first atomic outcome and its focused validation."
+      "files": ["compiler/parser/**"],
+      "validation": ["run focused parser tests"],
+      "completion_gate": "Focused parser tests pass",
+      "assigned_branch": "task/language-feature/parser",
+      "draft_prompt": "Recognize the new syntax and cover it with focused parser tests."
     },
     {
-      "id": "PART2-01",
-      "lane": "PART2",
-      "title": "Produce the second atomic outcome",
-      "commit_intent": "Produce the second atomic outcome",
+      "id": "CHECKER-01",
+      "lane": "CHECKER",
+      "title": "Validate the new semantics",
+      "commit_intent": "Validate the new semantics",
       "status": "planned",
-      "files": ["path/owned/by/part-two/**"],
-      "validation": ["run focused checks"],
-      "completion_gate": "Focused checks pass",
-      "assigned_branch": "task/requested-change/part2",
-      "draft_prompt": "Complete the second atomic outcome and its focused validation."
+      "files": ["compiler/checker/**"],
+      "validation": ["run focused semantic-analysis tests"],
+      "completion_gate": "Focused semantic-analysis tests pass",
+      "assigned_branch": "task/language-feature/checker",
+      "draft_prompt": "Validate the new semantics against the accepted representation contract."
+    },
+    {
+      "id": "EMITTER-01",
+      "lane": "EMITTER",
+      "title": "Emit the new construct",
+      "commit_intent": "Emit the new construct",
+      "status": "planned",
+      "files": ["compiler/emitter/**"],
+      "validation": ["run focused emitter tests"],
+      "completion_gate": "Focused emitter tests pass",
+      "assigned_branch": "task/language-feature/emitter",
+      "draft_prompt": "Emit the new construct against the accepted output contract."
     },
     {
       "id": "VERIFY-01",
       "lane": "VERIFY",
-      "title": "Verify the combined result",
-      "commit_intent": "Verify the combined result",
+      "title": "Verify the language feature",
+      "commit_intent": "Verify the language feature",
       "status": "planned",
-      "files": ["path/owned/by/verification/**"],
-      "validation": ["run combined checks"],
-      "completion_gate": "Combined checks pass",
-      "assigned_branch": "task/requested-change/verify",
-      "draft_prompt": "Verify the integrated outputs."
+      "files": ["compiler/integration-tests/**"],
+      "validation": ["run language integration tests"],
+      "completion_gate": "Language integration tests pass",
+      "assigned_branch": "task/language-feature/verify",
+      "draft_prompt": "Verify the integrated parser, checker, and emitter outputs."
     }
   ],
   "dependencies": [
     {
-      "from": "PART1-01",
+      "from": "PARSER-01",
       "to": "VERIFY-01",
-      "reason": "Combined verification consumes the first output"
+      "reason": "Integrated verification consumes parsed syntax"
     },
     {
-      "from": "PART2-01",
+      "from": "CHECKER-01",
       "to": "VERIFY-01",
-      "reason": "Combined verification consumes the second output"
+      "reason": "Integrated verification consumes semantic validation"
+    },
+    {
+      "from": "EMITTER-01",
+      "to": "VERIFY-01",
+      "reason": "Integrated verification consumes generated output"
     }
   ],
   "collisions": []

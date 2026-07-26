@@ -1,6 +1,6 @@
 {
   "name": "algorithmic-prompting",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
   "author": {
     "name": "Jaeyeol Lee",
