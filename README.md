@@ -16,7 +16,7 @@ Lane names come from the project rather than a fixed technology or product taxon
 
 ```text
 Summary and task index return first
-└── Full task prompts land independently
+└── Concurrent subagents land full task prompts independently
 ```
 
 ## What you get
@@ -24,6 +24,7 @@ Summary and task index return first
 - A clickable task index for every plan
 - A dependency graph showing parallel and waiting work
 - One bounded coding-agent prompt that lands independently per commit unit
+- Concurrent prompt-detail subagents with no coordinator fan-in
 - Clear start, commit, and integration handoffs
 
 Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lean profile keeps each detail job and landed prompt compact; use deeper profiles only where the task benefits from more context and edge cases.

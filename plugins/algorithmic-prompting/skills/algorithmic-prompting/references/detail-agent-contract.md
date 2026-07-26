@@ -1,6 +1,6 @@
 # Detail-agent contract
 
-Use one fire-and-forget detail job per task after the index and placeholders exist.
+Use one independent subagent per prompt-detail task after the index and placeholders exist. Dispatch all of them concurrently; the coordinator returns immediately after dispatch.
 
 ## Assignment
 

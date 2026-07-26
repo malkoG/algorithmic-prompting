@@ -53,9 +53,9 @@ This must create `00-task-index.md`, `.task-files.json`, and one lightweight tas
 
 ## Let complete prompts land independently
 
-Follow [references/detail-agent-contract.md](references/detail-agent-contract.md). Dispatch one fire-and-forget detail job per task after the placeholders exist.
+Follow [references/detail-agent-contract.md](references/detail-agent-contract.md). Use subagents for the independent prompt-detail tasks. Dispatch them concurrently and return immediately after dispatch.
 
-1. Use separate user-owned Codex tasks when the request explicitly asks for asynchronous, fire-and-forget, or separate task execution and task creation is available. Otherwise use background subagents only when they are documented to continue after the coordinator returns.
+1. Spawn one subagent per prompt-detail task after all placeholders exist. Each subagent owns only its assigned detail result and task file.
 2. Give each job the shared plan path, output directory, its task ID, prompt profile, lane contract, repository guidance, hard prerequisites, collision hints, and likely paths. Prefer bounded task-local context over full conversation history.
 3. Keep detail work read-only with respect to the repository. Do not implement code, create branches or worktrees, or commit changes.
 4. Have each job write one structured detail result to a unique temporary path, then run:
@@ -65,8 +65,8 @@ scripts/land_task_detail.py <plan.json> <detail.json> --output-dir <task-directo
 ```
 
 5. Let the landing script atomically replace only that task's placeholder and persist its detail result. Detail jobs must never edit `00-task-index.md`, `.task-files.json`, another task file, or the shared plan.
-6. Do not wait for detail jobs, collect their messages, or perform a fan-in before returning. Return after every job has been accepted for execution.
-7. If no execution surface can safely continue after return, keep the placeholders and report that asynchronous dispatch is unavailable. Do not silently turn the request into a blocking workflow.
+6. Dispatch all prompt-detail subagents concurrently. After every dispatch is accepted, return immediately. Do not wait for their messages or perform a fan-in.
+7. If subagents cannot continue after return, keep the placeholders and report that asynchronous dispatch is unavailable. Do not silently turn the request into a blocking workflow.
 
 Prompt-detail jobs may run concurrently even when implementation tasks have hard dependencies. Their prompts describe those dependencies; they do not execute the work. Newly discovered graph proposals and uncertainties stay in the landed task file for later human integration.
 
