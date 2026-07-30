@@ -1,0 +1,19 @@
+<!--
+  Pattern: lightweight text-only choice (no screenshots) — letter-badge
+  list rather than image cards. Use for narrow decisions embedded mid-task
+  where a full render/screenshot round isn't worth it.
+  Fill in {{...}} placeholders, copy/repeat the .option block per choice
+  (use consecutive letters A, B, C...), delete this comment, then write
+  the result into screen_dir.
+-->
+<h2>{{QUESTION}}</h2>
+<div class="options">
+  <div class="option" data-choice="{{CHOICE_ID}}" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>{{CHOICE_TITLE}}</h3>
+      <p>{{CHOICE_DESCRIPTION}}</p>
+    </div>
+  </div>
+  <!-- repeat this .option block per choice, incrementing the letter -->
+</div>

@@ -1,0 +1,210 @@
+<!--
+  Default-layout mockup CANDIDATE (not the picker screen) — a full
+  representative settings-style page, never an empty shell, per
+  references/comparison-guidelines.md "Default layout (sidebar vs. top
+  tabs)". Layout choice interacts with content density and scan pattern,
+  which an empty page can't show, so this renders real nav items and two
+  real content cards (Profile, Notifications) in either structure.
+
+  Fill in {{LAYOUT}} with exactly one of: "sidebar" | "tabs". This single
+  file contains BOTH full markup blocks, each gated by a
+  data-layout="sidebar" / data-layout="tabs" wrapper and matching CSS
+  (`[data-body-layout="sidebar"] .layout-sidebar { display:block }` etc.)
+  driven off a `data-body-layout` attribute set on <body> from {{LAYOUT}}.
+  Do NOT delete either block by hand — just set {{LAYOUT}} once at the top
+  and the unused block stays hidden via CSS. This keeps one template file
+  reusable for both variants instead of forking two separate .tmpl files.
+
+  Usage:
+    sed 's/{{LAYOUT}}/sidebar/' default-layout.html.tmpl > sidebar.html
+    sed 's/{{LAYOUT}}/tabs/'    default-layout.html.tmpl > tabs.html
+  Serve each from its own scratch dir, screenshot, then reference from
+  templates/cards-grid.html.tmpl.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+         background:#0e0e10; color:#eaeaea; }
+
+  /* Only the block matching {{LAYOUT}} is shown; the other stays display:none. */
+  body[data-body-layout="sidebar"] .layout-tabs { display:none; }
+  body[data-body-layout="tabs"] .layout-sidebar { display:none; }
+
+  .content { padding:1.75rem 2rem; }
+  .page-title { font-size:1.4rem; font-weight:700; margin:0 0 0.25rem; }
+  .page-subtitle { font-size:0.9rem; opacity:0.65; margin:0 0 1.5rem; }
+
+  .cards-2col { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; }
+  .content-card { border:1px solid #2a2a2e; background:#18181b; border-radius:10px; overflow:hidden; }
+  .content-card h3 { margin:0; padding:0.9rem 1.1rem; font-size:0.95rem; font-weight:600;
+                      background:#222226; border-bottom:1px solid #2a2a2e; }
+  .content-card .body { padding:1rem 1.1rem; display:flex; flex-direction:column; gap:0.85rem; }
+  .field { display:flex; flex-direction:column; gap:0.3rem; }
+  .field label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; opacity:0.6; }
+  .field .value { font-size:0.9rem; padding:0.5rem 0.7rem; border:1px solid #333338;
+                   border-radius:6px; background:#1a1a1c; }
+  .avatar-row { display:flex; align-items:center; gap:0.75rem; }
+  .avatar { width:44px; height:44px; border-radius:50%; background:#7a4de0; color:#fff;
+            display:flex; align-items:center; justify-content:center; font-weight:700;
+            flex-shrink:0; }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; }
+  .toggle-row .label-group { display:flex; flex-direction:column; gap:0.15rem; }
+  .toggle-row .label-group .name { font-size:0.9rem; font-weight:600; }
+  .toggle-row .label-group .desc { font-size:0.78rem; opacity:0.6; }
+  .switch { width:36px; height:20px; border-radius:999px; background:#3a5bd9; position:relative; flex-shrink:0; }
+  .switch::after { content:""; position:absolute; top:2px; right:2px; width:16px; height:16px;
+                    border-radius:50%; background:#fff; }
+  .switch.off { background:#3a3a3e; }
+  .switch.off::after { right:auto; left:2px; }
+  .btn-save { font-family:inherit; font-weight:600; font-size:0.85rem; cursor:pointer;
+              border:none; border-radius:6px; padding:0.55rem 1.1rem; background:#3a5bd9;
+              color:#fff; align-self:flex-start; }
+
+  /* --- sidebar variant --- */
+  .layout-sidebar { display:flex; min-height:100vh; }
+  .sidebar { width:200px; flex-shrink:0; border-right:1px solid #2a2a2e; background:#141416;
+             padding:1.25rem 0.75rem; }
+  .sidebar .brand { font-size:0.85rem; font-weight:700; padding:0 0.5rem 1.25rem; opacity:0.85; }
+  .sidebar nav { display:flex; flex-direction:column; gap:0.15rem; }
+  .sidebar nav a { display:block; padding:0.55rem 0.75rem; border-radius:6px; font-size:0.87rem;
+                    color:#cfcfd2; text-decoration:none; }
+  .sidebar nav a.active { background:#2a3a6e; color:#fff; font-weight:600; }
+  .layout-sidebar .content { flex:1; }
+
+  /* --- tabs variant --- */
+  .tabs-header { border-bottom:1px solid #2a2a2e; background:#141416; padding:0 2rem; }
+  .tabs-header .brand { font-size:0.85rem; font-weight:700; padding:1rem 0 0.75rem; opacity:0.85; }
+  .tab-row { display:flex; gap:0.25rem; }
+  .tab-row a { display:block; padding:0.7rem 0.9rem; font-size:0.87rem; color:#cfcfd2;
+               text-decoration:none; border-bottom:2px solid transparent; }
+  .tab-row a.active { color:#fff; font-weight:600; border-bottom-color:#5a8cff; }
+
+  @media (prefers-color-scheme: light) {
+    body { background:#f7f7f8; color:#1a1a1a; }
+    .sidebar, .tabs-header { background:#eeeef0; border-color:#dcdce0; }
+    .sidebar nav a, .tab-row a { color:#4a4a52; }
+    .content-card { background:#ffffff; border-color:#dcdce0; }
+    .content-card h3 { background:#f3f3f5; border-color:#dcdce0; }
+    .field .value { background:#f7f7f8; border-color:#dcdce0; }
+  }
+</style></head>
+<body data-body-layout="{{LAYOUT}}">
+
+  <!-- ============ SIDEBAR VARIANT ============ -->
+  <div class="layout-sidebar">
+    <aside class="sidebar">
+      <div class="brand">Acme Workspace</div>
+      <nav>
+        <a href="#" class="active">Profile</a>
+        <a href="#">Notifications</a>
+        <a href="#">Billing</a>
+        <a href="#">Security</a>
+      </nav>
+    </aside>
+    <div class="content">
+      <div class="page-title">Settings</div>
+      <div class="page-subtitle">Manage your account preferences</div>
+      <div class="cards-2col">
+        <!-- Profile card -->
+        <div class="content-card">
+          <h3>Profile</h3>
+          <div class="body">
+            <div class="avatar-row">
+              <div class="avatar">JS</div>
+              <div class="field" style="flex:1">
+                <label>Name</label>
+                <div class="value">Jamie Sato</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <div class="value">jamie.sato@acme.io</div>
+            </div>
+          </div>
+        </div>
+        <!-- Notifications card -->
+        <div class="content-card">
+          <h3>Notifications</h3>
+          <div class="body">
+            <div class="toggle-row">
+              <div class="label-group">
+                <div class="name">Email notifications</div>
+                <div class="desc">Weekly digest and account alerts</div>
+              </div>
+              <div class="switch"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="label-group">
+                <div class="name">Push notifications</div>
+                <div class="desc">Real-time mentions and replies</div>
+              </div>
+              <div class="switch off"></div>
+            </div>
+            <button class="btn-save">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TABS VARIANT ============ -->
+  <div class="layout-tabs">
+    <header class="tabs-header">
+      <div class="brand">Acme Workspace</div>
+      <div class="tab-row">
+        <a href="#" class="active">Profile</a>
+        <a href="#">Notifications</a>
+        <a href="#">Billing</a>
+        <a href="#">Security</a>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-title">Settings</div>
+      <div class="page-subtitle">Manage your account preferences</div>
+      <div class="cards-2col">
+        <!-- Profile card -->
+        <div class="content-card">
+          <h3>Profile</h3>
+          <div class="body">
+            <div class="avatar-row">
+              <div class="avatar">JS</div>
+              <div class="field" style="flex:1">
+                <label>Name</label>
+                <div class="value">Jamie Sato</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <div class="value">jamie.sato@acme.io</div>
+            </div>
+          </div>
+        </div>
+        <!-- Notifications card -->
+        <div class="content-card">
+          <h3>Notifications</h3>
+          <div class="body">
+            <div class="toggle-row">
+              <div class="label-group">
+                <div class="name">Email notifications</div>
+                <div class="desc">Weekly digest and account alerts</div>
+              </div>
+              <div class="switch"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="label-group">
+                <div class="name">Push notifications</div>
+                <div class="desc">Real-time mentions and replies</div>
+              </div>
+              <div class="switch off"></div>
+            </div>
+            <button class="btn-save">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body></html>

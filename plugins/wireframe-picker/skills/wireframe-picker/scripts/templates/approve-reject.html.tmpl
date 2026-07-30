@@ -1,0 +1,15 @@
+<!--
+  Pattern: binary go/no-go gate on a single preview (not a comparison
+  between alternatives). Use for QA / visual-regression checks.
+  Fill in {{...}} placeholders, delete this comment, then write the
+  result into screen_dir.
+-->
+<h2>{{QUESTION}}</h2>
+<div class="mockup">
+  <div class="mockup-header">{{PREVIEW_LABEL}}</div>
+  <div class="mockup-body"><img src="/files/{{PREVIEW_IMAGE_FILENAME}}" style="width:100%;display:block;"></div>
+</div>
+<div class="approve-reject">
+  <button class="approve" data-choice="approve" onclick="toggleSelect(this)">{{APPROVE_LABEL}}</button>
+  <button class="reject" data-choice="reject" onclick="toggleSelect(this)">{{REJECT_LABEL}}</button>
+</div>

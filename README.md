@@ -66,3 +66,51 @@ Start a new ChatGPT or Codex conversation after installation.
 codex plugin marketplace upgrade squire
 codex plugin add algorithmic-prompting@squire
 ```
+
+## Wireframe Picker
+
+Turn a UI decision into real shadcn-composed variants that you choose by clicking a screenshot, not by describing a preference in words.
+
+### Mental model
+
+```text
+UI goal
+└── 2-4 short variant specs (cheap, no code yet)
+    └── Human confirms which specs are worth rendering
+        └── N parallel subagents, one worktree + dev server each
+            └── Screenshot per variant
+                └── One picker screen, human clicks a card
+                    └── Winning worktree merged in, losers discarded
+```
+
+### What you get
+
+- Cheap text variant specs before anything gets built or rendered
+- Parallel, collision-free variant builds via isolated git worktrees
+- Real component-composed screenshots, not placeholder mockups
+- A click-to-choose picker screen served to your own browser
+- The winning worktree merged in automatically; the rest discarded
+
+### Workflow
+
+1. Describe the UI decision you're weighing.
+2. Review and confirm which of the proposed variant specs are worth rendering.
+3. Let each confirmed variant build and screenshot in its own worktree.
+4. Click a screenshot in your browser to choose.
+5. The winning worktree is merged in; the others are cleaned up.
+
+### Install
+
+```sh
+codex plugin marketplace add malkoG/squire
+codex plugin add wireframe-picker@squire
+```
+
+Start a new ChatGPT or Codex conversation after installation.
+
+### Update
+
+```sh
+codex plugin marketplace upgrade squire
+codex plugin add wireframe-picker@squire
+```

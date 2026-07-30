@@ -1,0 +1,134 @@
+<!--
+  Desktop navigation-pattern mockup CANDIDATE (not the picker screen) — a
+  realistic dashboard-ish page comparing a left rail vs. a top bar, per
+  references/comparison-guidelines.md ("Navigation pattern" section). This
+  is the DESKTOP half of that decision only (mobile hamburger/bottom-tabs is
+  a separate category/template) — render at the default 1280x800 viewport,
+  no --viewport-size override needed.
+
+  Unlike the color/font templates in this directory, {{NAV_STYLE}} is NOT a
+  simple CSS custom-property substitution — rail and top-bar are
+  structurally different layouts (a vertical flex column with a sidebar vs.
+  a horizontal bar stacked above the content), not the same markup with one
+  variable swapped. Below are two clearly-delineated markup blocks, one per
+  NAV_STYLE value ("rail" and "topbar"). Whoever fills this in should:
+    1. Pick the block matching the target {{NAV_STYLE}} value.
+    2. Delete the other block entirely (including its comment markers).
+    3. Delete this usage comment.
+  Both blocks share the same nav item set (5 items, one active) and the
+  same main-content stat cards, so the only thing being compared is the
+  navigation placement itself.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+         background:#0e0e10; color:#eaeaea; }
+  a { color:inherit; text-decoration:none; }
+
+  /* ---- shared nav item look (used by both layouts) ---- */
+  .nav-item { display:flex; align-items:center; gap:0.7rem; padding:0.65rem 0.9rem;
+              border-radius:8px; font-size:0.9rem; font-weight:500; color:#a8a8ad;
+              cursor:pointer; }
+  .nav-item .icon { width:18px; height:18px; flex-shrink:0; display:flex;
+                     align-items:center; justify-content:center; opacity:0.85; }
+  .nav-item.active { background:#26262b; color:#eaeaea; }
+  .nav-item:not(.active):hover { color:#eaeaea; }
+
+  /* ---- shared main content ---- */
+  .content { padding:2rem; }
+  .content h1 { font-size:1.4rem; margin:0 0 0.3rem; }
+  .content .subtitle { font-size:0.85rem; color:#8a8a90; margin:0 0 1.5rem; }
+  .stat-cards { display:flex; gap:1rem; flex-wrap:wrap; }
+  .stat-card { flex:1 1 180px; background:#18181b; border:1px solid #2a2a2e;
+               border-radius:10px; padding:1.1rem 1.3rem; }
+  .stat-card .label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;
+                       color:#8a8a90; margin-bottom:0.5rem; }
+  .stat-card .value { font-size:1.6rem; font-weight:700; }
+  .stat-card .delta { font-size:0.8rem; color:#5fd97a; margin-top:0.3rem; }
+</style></head>
+<body>
+
+<!-- ===== BLOCK A — use only when {{NAV_STYLE}} = "rail" ===== -->
+<style>
+  .layout-rail { display:flex; min-height:100vh; }
+  .rail { width:200px; flex-shrink:0; background:#151517; border-right:1px solid #2a2a2e;
+          padding:1.25rem 0.75rem; display:flex; flex-direction:column; gap:0.25rem; }
+  .rail .brand { font-weight:700; font-size:1rem; padding:0.4rem 0.5rem 1.2rem; }
+  .rail .content { flex:1; }
+</style>
+<div class="layout-rail">
+  <nav class="rail">
+    <div class="brand">Acme</div>
+    <div class="nav-item active"><span class="icon">&#9673;</span> Overview</div>
+    <div class="nav-item"><span class="icon">&#9776;</span> Projects</div>
+    <div class="nav-item"><span class="icon">&#9993;</span> Messages</div>
+    <div class="nav-item"><span class="icon">&#128202;</span> Analytics</div>
+    <div class="nav-item"><span class="icon">&#9881;</span> Settings</div>
+  </nav>
+  <main class="content">
+    <h1>Overview</h1>
+    <p class="subtitle">Left rail navigation &middot; workspace summary</p>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="label">Active projects</div>
+        <div class="value">24</div>
+        <div class="delta">&#8593; 3 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Open tasks</div>
+        <div class="value">128</div>
+        <div class="delta">&#8593; 12 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Team members</div>
+        <div class="value">16</div>
+        <div class="delta" style="color:#8a8a90;">No change</div>
+      </div>
+    </div>
+  </main>
+</div>
+<!-- ===== END BLOCK A ===== -->
+
+<!-- ===== BLOCK B — use only when {{NAV_STYLE}} = "topbar" =====
+<style>
+  .layout-topbar { min-height:100vh; }
+  .topbar { display:flex; align-items:center; gap:0.4rem; background:#151517;
+            border-bottom:1px solid #2a2a2e; padding:0.75rem 1.25rem; }
+  .topbar .brand { font-weight:700; font-size:1rem; margin-right:1.5rem; }
+  .topbar .nav-item { padding:0.5rem 0.8rem; }
+</style>
+<div class="layout-topbar">
+  <nav class="topbar">
+    <div class="brand">Acme</div>
+    <div class="nav-item active"><span class="icon">&#9673;</span> Overview</div>
+    <div class="nav-item"><span class="icon">&#9776;</span> Projects</div>
+    <div class="nav-item"><span class="icon">&#9993;</span> Messages</div>
+    <div class="nav-item"><span class="icon">&#128202;</span> Analytics</div>
+    <div class="nav-item"><span class="icon">&#9881;</span> Settings</div>
+  </nav>
+  <main class="content">
+    <h1>Overview</h1>
+    <p class="subtitle">Top bar navigation &middot; workspace summary</p>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="label">Active projects</div>
+        <div class="value">24</div>
+        <div class="delta">&#8593; 3 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Open tasks</div>
+        <div class="value">128</div>
+        <div class="delta">&#8593; 12 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Team members</div>
+        <div class="value">16</div>
+        <div class="delta" style="color:#8a8a90;">No change</div>
+      </div>
+    </div>
+  </main>
+</div>
+===== END BLOCK B ===== -->
+
+</body></html>

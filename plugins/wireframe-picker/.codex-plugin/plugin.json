@@ -1,0 +1,27 @@
+{
+  "name": "wireframe-picker",
+  "version": "0.1.0",
+  "description": "Turn a UI decision into real shadcn-composed variants, screenshotted and chosen by clicking instead of describing a preference in words.",
+  "author": {
+    "name": "Jaeyeol Lee",
+    "email": "jaeyeol.lee@hey.com"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Wireframe Picker",
+    "shortDescription": "Pick a UI direction by clicking screenshots, not describing them.",
+    "longDescription": "Propose a few shadcn-composed variants as text, build the confirmed ones in parallel isolated worktrees, screenshot each with Playwright, and let the human choose by clicking a screenshot in their own browser. Reads the click back on the next turn and merges the winning worktree.",
+    "developerName": "Jaeyeol Lee",
+    "category": "Productivity",
+    "capabilities": [
+      "Draft cheap text variant specs before rendering anything",
+      "Build confirmed variants in parallel isolated git worktrees",
+      "Render real shadcn component compositions per variant",
+      "Screenshot each variant with Playwright",
+      "Serve a click-to-choose picker screen in the user's own browser",
+      "Read the chosen variant back from recorded click events",
+      "Merge the winning worktree and discard the rest"
+    ],
+    "defaultPrompt": "Use $wireframe-picker to propose a few shadcn-composed variants for this UI decision, confirm which to render, build each in its own worktree, screenshot them, and let me pick by clicking instead of reading a description."
+  }
+}

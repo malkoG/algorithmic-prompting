@@ -1,0 +1,100 @@
+<!--
+  Icon-style mockup CANDIDATE (not the picker screen) — a small icon strip
+  (nav rail + toolbar + empty state) rendered at actual usage size
+  (18-20px), never one icon blown up large, per
+  references/comparison-guidelines.md. Consistency across the set matters
+  more than any single icon's shape, so all 6 icons (home, search,
+  settings, bell, user, plus) share one stroke weight / fill rule.
+
+  Fill in {{ICON_STYLE}} (must be exactly "outline" or "filled" — it's
+  written to the <html data-style="..."> attribute, which the CSS below
+  keys off to switch every icon between stroke-only and solid-fill
+  rendering) and {{STYLE_LABEL}} (the human label, e.g. "Outline" or
+  "Filled"), delete this comment. Serve this as its own page, screenshot
+  it, then reference the screenshot from templates/cards-grid.html.tmpl.
+-->
+<!DOCTYPE html>
+<html data-style="{{ICON_STYLE}}"><head><meta charset="utf-8"><style>
+  body { margin:0; padding:2rem; font-family:-apple-system,sans-serif; background:#0e0e10; color:#eaeaea; max-width:480px; }
+  h2 { margin:0 0 1.5rem; font-size:1.1rem; }
+  .section-label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6; margin:0 0 0.5rem; }
+
+  svg.icon { width:18px; height:18px; display:block; }
+  html[data-style="outline"] svg.icon { fill:none; stroke:#eaeaea; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  html[data-style="filled"] svg.icon { fill:#eaeaea; stroke:none; }
+  /* Plus icon needs different path data per style (a cross of two strokes
+     vs. a single filled cross polygon) — toggle which one renders. */
+  html[data-style="outline"] svg.icon .fill-only { display:none; }
+  html[data-style="filled"] svg.icon .stroke-only { display:none; }
+
+  /* Nav rail: vertical icon strip, one active item highlighted */
+  .nav-rail { display:flex; flex-direction:column; gap:0.25rem; width:56px; padding:0.75rem 0; background:#1a1a1c; border-radius:10px; margin-bottom:1.5rem; }
+  .nav-rail .nav-item { display:flex; align-items:center; justify-content:center; padding:0.6rem 0; border-radius:8px; }
+  .nav-rail .nav-item.active { background:#2a2a2e; }
+  .nav-rail .nav-item.active svg.icon { stroke:#8ab4ff; }
+  html[data-style="filled"] .nav-rail .nav-item.active svg.icon { fill:#8ab4ff; }
+
+  /* Toolbar: horizontal icon strip with labels, real context */
+  .toolbar { display:flex; align-items:center; gap:1.25rem; padding:0.75rem 1rem; background:#1a1a1c; border-radius:10px; margin-bottom:1.5rem; }
+  .toolbar .tool { display:flex; flex-direction:column; align-items:center; gap:0.3rem; font-size:0.65rem; opacity:0.85; }
+
+  /* Empty state: single icon at same 18-20px scale, not blown up */
+  .empty-state { display:flex; flex-direction:column; align-items:center; gap:0.6rem; padding:2rem 1rem; border:1px dashed #2a2a2e; border-radius:10px; text-align:center; }
+  .empty-state svg.icon { width:20px; height:20px; opacity:0.6; }
+  .empty-state p { margin:0; font-size:0.85rem; opacity:0.7; }
+</style></head>
+<body>
+  <h2>{{STYLE_LABEL}} icons</h2>
+
+  <p class="section-label">Nav rail</p>
+  <div class="nav-rail">
+    <div class="nav-item active">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M4 11.5 12 4l8 7.5" /><path d="M6 10v9h5v-5h2v5h5v-9" />
+      </svg>
+    </div>
+    <div class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24">
+        <circle cx="10.5" cy="10.5" r="6" />
+        <path d="M17.8 15.4l3.4 3.4-1.4 1.4-3.4-3.4z" />
+      </svg>
+    </div>
+    <div class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path fill-rule="evenodd" d="M12 5.5 17.7 9v6l-5.7 3.5L6.3 15V9Zm2.6 6.5a2.6 2.6 0 1 0-5.2 0 2.6 2.6 0 0 0 5.2 0Z" />
+      </svg>
+    </div>
+  </div>
+
+  <p class="section-label">Toolbar</p>
+  <div class="toolbar">
+    <div class="tool">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M12 3.5c-2.8 3-4.5 5.7-4.5 8.7a4.5 4.5 0 0 0 9 0c0-3-1.7-5.7-4.5-8.7Z" />
+      </svg>
+      Bell
+    </div>
+    <div class="tool">
+      <svg class="icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="8.5" r="3.5" /><path d="M5 20c0-3.6 3.1-6.5 7-6.5s7 2.9 7 6.5" />
+      </svg>
+      User
+    </div>
+    <div class="tool">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path class="stroke-only" d="M12 5.5v13M5.5 12h13" />
+        <path class="fill-only" d="M10.6 5.5h2.8v5.1h5.1v2.8h-5.1v5.1h-2.8v-5.1H5.5v-2.8h5.1z" />
+      </svg>
+      Add
+    </div>
+  </div>
+
+  <p class="section-label">Empty state</p>
+  <div class="empty-state">
+    <svg class="icon" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6" />
+      <path d="M17.8 15.4l3.4 3.4-1.4 1.4-3.4-3.4z" />
+    </svg>
+    <p>No results found</p>
+  </div>
+</body></html>

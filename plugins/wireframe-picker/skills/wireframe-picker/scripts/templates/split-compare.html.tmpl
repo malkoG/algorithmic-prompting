@@ -1,0 +1,21 @@
+<!--
+  Pattern: direct 2-way side-by-side comparison.
+  Use for: content density, dark/light mode, elevation-style with exactly
+  2 variants (see references/comparison-guidelines.md).
+  mockup-body should hold only an <img> — any other text inside it gets
+  picked up as the recorded choice text alongside the header label.
+  Fill in {{...}} placeholders, delete this comment, then write the
+  result into screen_dir.
+-->
+<h2>{{QUESTION}}</h2>
+<p class="subtitle">{{SUBTITLE}}</p>
+<div class="split">
+  <div class="mockup" data-choice="{{CHOICE_1_ID}}" onclick="toggleSelect(this)">
+    <div class="mockup-header">{{CHOICE_1_LABEL}}</div>
+    <div class="mockup-body"><img src="/files/{{CHOICE_1_IMAGE_FILENAME}}" style="width:100%;display:block;"></div>
+  </div>
+  <div class="mockup" data-choice="{{CHOICE_2_ID}}" onclick="toggleSelect(this)">
+    <div class="mockup-header">{{CHOICE_2_LABEL}}</div>
+    <div class="mockup-body"><img src="/files/{{CHOICE_2_IMAGE_FILENAME}}" style="width:100%;display:block;"></div>
+  </div>
+</div>
