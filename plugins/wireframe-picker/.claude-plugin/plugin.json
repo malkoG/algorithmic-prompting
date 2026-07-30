@@ -1,6 +1,6 @@
 {
   "name": "wireframe-picker",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "Turn a UI decision into real shadcn-composed variants, screenshotted and chosen by clicking instead of describing a preference in words.",
   "author": {
     "name": "Jaeyeol Lee",

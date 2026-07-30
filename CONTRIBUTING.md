@@ -113,13 +113,13 @@ changes which files get written.
 
 ## §3 Versioning
 
-Each plugin versions independently: `plugins/<name>/.claude-plugin/plugin.json`,
-`plugins/<name>/.codex-plugin/plugin.json`, and that plugin's entry in both `marketplace.json` files
-carry the same `X.Y.Z` string for that plugin. Bump only the plugin(s) that actually changed —
-`algorithmic-prompting` and `wireframe-picker` currently sit at unrelated version numbers (`0.8.1`
-vs. `0.1.0`), and that's expected, not drift to correct.
+As of `0.9.0`, every plugin in this repository shares one `X.Y.Z` string, set identically across
+`plugins/<name>/.claude-plugin/plugin.json`, `plugins/<name>/.codex-plugin/plugin.json`, and that
+plugin's entry in both `marketplace.json` files — six locations in total for the current two
+plugins. A change to any one plugin bumps the version everywhere, even for a plugin whose own code
+didn't change this release, so the string never drifts out of sync across files or plugins.
 
-Historical tags (`v0.5.0`–`v0.8.0`) predate the current multi-plugin marketplace layout and tagged
-the repository as a whole before `plugins/` existed. No repo-wide tag has been cut since the
-marketplace/plugin.json structure was introduced; treat per-plugin manifest versions as the source
-of truth unless and until a repo-wide release convention is actually adopted and evidenced here.
+Historical tags (`v0.5.0`–`v0.8.0`) predate this convention and the current multi-plugin marketplace
+layout, tagging the repository as a whole before `plugins/` existed. No repo-wide tag has been cut
+since; cut one (`vX.Y.Z`) on the release commit that unifies the version bump, rather than tagging
+per plugin.
