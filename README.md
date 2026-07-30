@@ -54,7 +54,7 @@ Prompt depth is selectable: `lean` (default), `balanced`, or `thorough`. The lea
 ### Install
 
 ```sh
-codex plugin marketplace add malkoG/algorithmic-prompting
+codex plugin marketplace add malkoG/squire
 codex plugin add algorithmic-prompting@squire
 ```
 
