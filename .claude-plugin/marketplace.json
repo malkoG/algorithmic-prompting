@@ -15,6 +15,13 @@
       "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
       "version": "0.8.1",
       "category": "productivity"
+    },
+    {
+      "name": "wireframe-picker",
+      "source": "./plugins/wireframe-picker",
+      "description": "Turn a UI decision into real shadcn-composed variants, screenshotted and chosen by clicking instead of describing a preference in words.",
+      "version": "0.1.0",
+      "category": "productivity"
     }
   ]
 }
