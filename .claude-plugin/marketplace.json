@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "squire",
+  "metadata": {
+    "description": "Human-controlled agent workflows by Jaeyeol Lee."
+  },
+  "owner": {
+    "name": "Jaeyeol Lee",
+    "email": "jaeyeol.lee@hey.com"
+  },
+  "plugins": [
+    {
+      "name": "algorithmic-prompting",
+      "source": "./plugins/algorithmic-prompting",
+      "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
+      "version": "0.8.1",
+      "category": "productivity"
+    }
+  ]
+}

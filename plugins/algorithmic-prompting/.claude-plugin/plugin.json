@@ -1,0 +1,12 @@
+{
+  "name": "algorithmic-prompting",
+  "version": "0.8.1",
+  "description": "Turn a software goal into parallel work, atomic commits, agent prompts, and clear integration handoffs.",
+  "author": {
+    "name": "Jaeyeol Lee",
+    "email": "jaeyeol.lee@hey.com"
+  },
+  "homepage": "https://github.com/malkoG/squire",
+  "repository": "https://github.com/malkoG/squire",
+  "skills": "./skills/"
+}
