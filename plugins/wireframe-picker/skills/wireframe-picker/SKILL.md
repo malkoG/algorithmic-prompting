@@ -104,6 +104,22 @@ Merges the chosen variant's branch into the current branch, then removes every v
 scripts/stop-server.sh <state_dir>
 ```
 
+## Running multiple independent decisions in parallel
+
+When the human is weighing unrelated decisions at once (brand color, default layout, and so on), run one full pipeline per decision rather than mixing them into one picker screen — each decision gets its own subagent, its own namespaced variant-ids, and its own `pick-server`:
+
+1. Dispatch one subagent per decision. Give each one its decision name and confirmed variant specs; it independently runs steps 2-4 (worktrees, screenshots, its own `start-server.sh --project-dir <own-dir> --port <own-port>`) and reports back its `pick-server` JSON and the branch names it created. Subagents must not touch another decision's worktrees, ports, or project-dir.
+2. Namespace every variant-id with the decision name (`brand-color-warm`, `default-layout-sidebar`) — variant-ids drive worktree paths and branch names directly, so unprefixed ids from different decisions would collide.
+3. Watch every decision's choice in one combined live-watch instead of one per decision:
+
+```text
+tail -F -n 0 <decision-a-state_dir>/events <decision-b-state_dir>/events ...
+```
+
+`tail -F` on multiple files prints an `==> <path> <==` header whenever the active source changes, so each streamed event is attributable to its decision without extra bookkeeping.
+
+4. Resolve each decision independently with `resolve-variant.sh` as its choice comes in — one decision resolving doesn't block or affect the others still running.
+
 ## Rules
 
 - 2-4 variants per round. More than that is a sign the text-spec step didn't narrow enough.
