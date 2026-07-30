@@ -1,0 +1,101 @@
+<!--
+  Brand-color mockup CANDIDATE (not the picker screen) — three Tailwind-
+  v4-style OKLCH 50-950 ramps (primary + secondary + accent), each
+  applied to the UI elements that actually use that role, per
+  references/comparison-guidelines.md. Serve this as its own page,
+  screenshot it, then reference the screenshot from
+  templates/cards-grid.html.tmpl.
+
+  muted/border stay neutral-gray and destructive stays fixed semantic
+  red — those are intentionally not part of this comparison. primary,
+  secondary, and accent are all real brand-hued roles here.
+
+  The 50-950 lightness/chroma steps approximate Tailwind's ramp shape
+  (roughly constant hue, chroma peaking mid-scale) — not Tailwind's exact
+  proprietary values, just plausible enough to judge a candidate hue in
+  context. Fill in {{PRIMARY_HUE}}, {{SECONDARY_HUE}}, {{ACCENT_HUE}}
+  (all 0-360, OKLCH hue angle) and {{LABEL}}, delete this comment.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  :root { --primary-hue: {{PRIMARY_HUE}}; --secondary-hue: {{SECONDARY_HUE}}; --accent-hue: {{ACCENT_HUE}}; }
+  body { margin:0; padding:2rem; font-family:-apple-system,sans-serif; background:#0e0e10; color:#eaeaea; }
+  h2 { margin:0 0 1rem; }
+  .ramp-label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6; margin:0 0 0.4rem; }
+  .ramp { display:flex; border-radius:8px; overflow:hidden; margin-bottom:1.5rem; }
+  .ramp.primary   { --hue: var(--primary-hue); }
+  .ramp.secondary { --hue: var(--secondary-hue); }
+  .ramp.accent    { --hue: var(--accent-hue); }
+  .swatch { flex:1; height:56px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:0.3rem; font-size:0.7rem; opacity:0.8; }
+  .swatch:nth-child(1)  { background: oklch(0.984 0.019 var(--hue)); color:#111; }
+  .swatch:nth-child(2)  { background: oklch(0.955 0.037 var(--hue)); color:#111; }
+  .swatch:nth-child(3)  { background: oklch(0.902 0.073 var(--hue)); color:#111; }
+  .swatch:nth-child(4)  { background: oklch(0.827 0.113 var(--hue)); color:#111; }
+  .swatch:nth-child(5)  { background: oklch(0.714 0.164 var(--hue)); color:#111; }
+  .swatch:nth-child(6)  { background: oklch(0.623 0.188 var(--hue)); color:#fff; }
+  .swatch:nth-child(7)  { background: oklch(0.541 0.178 var(--hue)); color:#fff; }
+  .swatch:nth-child(8)  { background: oklch(0.470 0.155 var(--hue)); color:#fff; }
+  .swatch:nth-child(9)  { background: oklch(0.398 0.130 var(--hue)); color:#fff; }
+  .swatch:nth-child(10) { background: oklch(0.313 0.098 var(--hue)); color:#fff; }
+  .swatch:nth-child(11) { background: oklch(0.207 0.065 var(--hue)); color:#fff; }
+
+  .applied { --hue: var(--primary-hue); display:flex; align-items:center; gap:1.5rem; padding:1.5rem; border:1px solid #2a2a2e; border-radius:10px; flex-wrap:wrap; margin-bottom:1rem; }
+  .applied.secondary { --hue: var(--secondary-hue); }
+  .applied.accent    { --hue: var(--accent-hue); }
+
+  .btn { font-family:inherit; font-weight:600; cursor:pointer; border:none; border-radius:6px; padding:0.6rem 1.2rem;
+         background: oklch(0.623 0.188 var(--hue)); color:#fff; }
+  .btn-tonal { font-family:inherit; font-weight:600; cursor:pointer; border:none; border-radius:6px; padding:0.6rem 1.2rem;
+               background: oklch(0.623 0.188 var(--hue) / 0.15); color: oklch(0.827 0.113 var(--hue)); }
+  .btn-outline { font-family:inherit; font-weight:600; cursor:pointer; border-radius:6px; padding:0.6rem 1.2rem; background:transparent;
+                 border:2px solid oklch(0.623 0.188 var(--hue)); color: oklch(0.827 0.113 var(--hue)); }
+  .nav-active { font-weight:600; padding:0.4rem 0.8rem; border-radius:6px;
+                background: oklch(0.623 0.188 var(--hue) / 0.18); color: oklch(0.827 0.113 var(--hue)); }
+  .tab-indicator { font-weight:600; padding:0.4rem 0.2rem; border-bottom:2px solid oklch(0.623 0.188 var(--hue)); color: oklch(0.827 0.113 var(--hue)); }
+  .link { text-decoration:underline; color: oklch(0.714 0.164 var(--hue)); }
+  .focus-input { border-radius:6px; padding:0.5rem 0.8rem; background:#1a1a1c; color:#eaeaea; outline:none;
+                 border:2px solid oklch(0.623 0.188 var(--hue)); }
+  .badge { display:inline-block; font-size:0.75rem; font-weight:600; padding:0.25rem 0.6rem; border-radius:999px;
+           background: oklch(0.623 0.188 var(--hue) / 0.2); color: oklch(0.827 0.113 var(--hue)); }
+</style></head>
+<body>
+  <h2>{{LABEL}}</h2>
+
+  <p class="ramp-label">Primary</p>
+  <div class="ramp primary">
+    <div class="swatch">50</div><div class="swatch">100</div><div class="swatch">200</div>
+    <div class="swatch">300</div><div class="swatch">400</div><div class="swatch">500</div>
+    <div class="swatch">600</div><div class="swatch">700</div><div class="swatch">800</div>
+    <div class="swatch">900</div><div class="swatch">950</div>
+  </div>
+  <div class="applied">
+    <button class="btn">Primary action</button>
+    <span class="nav-active">Active nav</span>
+    <a class="link" href="#">A link</a>
+    <input class="focus-input" value="Focused input" readonly>
+  </div>
+
+  <p class="ramp-label">Secondary</p>
+  <div class="ramp secondary">
+    <div class="swatch">50</div><div class="swatch">100</div><div class="swatch">200</div>
+    <div class="swatch">300</div><div class="swatch">400</div><div class="swatch">500</div>
+    <div class="swatch">600</div><div class="swatch">700</div><div class="swatch">800</div>
+    <div class="swatch">900</div><div class="swatch">950</div>
+  </div>
+  <div class="applied secondary">
+    <button class="btn-tonal">Secondary action</button>
+    <span class="tab-indicator">Tab label</span>
+  </div>
+
+  <p class="ramp-label">Accent</p>
+  <div class="ramp accent">
+    <div class="swatch">50</div><div class="swatch">100</div><div class="swatch">200</div>
+    <div class="swatch">300</div><div class="swatch">400</div><div class="swatch">500</div>
+    <div class="swatch">600</div><div class="swatch">700</div><div class="swatch">800</div>
+    <div class="swatch">900</div><div class="swatch">950</div>
+  </div>
+  <div class="applied accent">
+    <span class="badge">New</span>
+    <button class="btn-outline">Tertiary action</button>
+  </div>
+</body></html>

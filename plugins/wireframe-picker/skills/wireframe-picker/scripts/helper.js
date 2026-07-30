@@ -37,18 +37,18 @@
   }
 
   window.toggleSelect = function (el) {
-    var container = el.closest('.options, .cards');
+    var container = el.closest('.options, .cards, .approve-reject, .split');
     var multi = container && container.hasAttribute('data-multiselect');
     if (container && !multi) {
-      var siblings = container.querySelectorAll('.option.selected, .card.selected');
+      var siblings = container.querySelectorAll('.option.selected, .card.selected, button.selected, .mockup.selected');
       for (var i = 0; i < siblings.length; i++) {
         if (siblings[i] !== el) siblings[i].classList.remove('selected');
       }
     }
     el.classList.toggle('selected');
     var choice = el.getAttribute('data-choice');
-    var titleEl = el.querySelector('h3');
-    var text = titleEl ? titleEl.textContent : choice;
+    var titleEl = el.querySelector('h3') || el.querySelector('.mockup-header');
+    var text = titleEl ? titleEl.textContent.trim() : el.textContent.trim();
     var selected = el.classList.contains('selected');
     if (window.__spkSend) {
       window.__spkSend({ type: 'click', choice: choice, text: text, selected: selected });

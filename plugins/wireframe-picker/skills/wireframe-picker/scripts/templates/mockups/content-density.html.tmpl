@@ -1,0 +1,46 @@
+<!--
+  Content-density mockup CANDIDATE (not the picker screen) — a data-dense
+  table with 10 rows so the cumulative effect of row padding is visible,
+  per references/comparison-guidelines.md. Density differences are
+  invisible on sparse content, so this always renders a full 10-row table
+  rather than a couple of sample rows.
+
+  Fill in {{ROW_PADDING}} (a CSS length applied as vertical cell padding
+  via the --row-padding custom property — e.g. "0.4rem" for compact,
+  "1rem" for comfortable, "1.6rem" for spacious) and {{LABEL}}, delete
+  this comment.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  :root { --row-padding: {{ROW_PADDING}}; }
+  body { margin:0; padding:2rem; font-family:-apple-system,sans-serif; background:#0e0e10; color:#eaeaea; }
+  .label { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6; margin-bottom:1rem; }
+  table { width:100%; max-width:640px; border-collapse:collapse; font-size:0.9rem; }
+  th { text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6;
+       padding:0.5rem 0.75rem; border-bottom:1px solid #2a2a2e; }
+  td { padding:var(--row-padding) 0.75rem; border-bottom:1px solid #232326; }
+  .status { display:inline-block; padding:0.15rem 0.55rem; border-radius:999px; font-size:0.75rem; font-weight:600; }
+  .status.active { background:#153d2b; color:#4ade80; }
+  .status.pending { background:#3d2f15; color:#facc15; }
+  .status.archived { background:#2a2a2e; color:#a1a1aa; }
+</style></head>
+<body>
+  <div class="label">{{LABEL}}</div>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Status</th><th>Updated</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Q3 Marketing Plan</td><td><span class="status active">Active</span></td><td>2 hours ago</td></tr>
+      <tr><td>Onboarding Redesign</td><td><span class="status pending">Pending</span></td><td>5 hours ago</td></tr>
+      <tr><td>Customer Feedback Log</td><td><span class="status active">Active</span></td><td>Yesterday</td></tr>
+      <tr><td>API Rate Limit Audit</td><td><span class="status archived">Archived</span></td><td>2 days ago</td></tr>
+      <tr><td>Vendor Contract Renewal</td><td><span class="status pending">Pending</span></td><td>3 days ago</td></tr>
+      <tr><td>Mobile Nav Refresh</td><td><span class="status active">Active</span></td><td>4 days ago</td></tr>
+      <tr><td>Data Retention Policy</td><td><span class="status archived">Archived</span></td><td>1 week ago</td></tr>
+      <tr><td>Support Escalation Rules</td><td><span class="status active">Active</span></td><td>1 week ago</td></tr>
+      <tr><td>Billing Migration</td><td><span class="status pending">Pending</span></td><td>2 weeks ago</td></tr>
+      <tr><td>Team Access Review</td><td><span class="status active">Active</span></td><td>3 weeks ago</td></tr>
+    </tbody>
+  </table>
+</body></html>

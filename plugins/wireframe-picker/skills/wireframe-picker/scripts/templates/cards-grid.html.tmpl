@@ -1,0 +1,19 @@
+<!--
+  Pattern: N-way choice (2-4 options), each with its own screenshot.
+  Use for: brand color, icon style, corner radius, default layout, navigation
+  pattern, typography (see references/comparison-guidelines.md).
+  Fill in {{...}} placeholders, copy/repeat the .card block per variant,
+  delete this comment, then write the result into screen_dir.
+-->
+<h2>{{QUESTION}}</h2>
+<p class="subtitle">{{SUBTITLE}}</p>
+<div class="cards">
+  <div class="card" data-choice="{{CHOICE_ID}}" onclick="toggleSelect(this)">
+    <div class="card-image"><img src="/files/{{IMAGE_FILENAME}}"></div>
+    <div class="card-body">
+      <h3>{{CHOICE_TITLE}}</h3>
+      <p class="subtitle" style="margin:0">{{CHOICE_DESCRIPTION}}</p>
+    </div>
+  </div>
+  <!-- repeat this .card block per variant -->
+</div>

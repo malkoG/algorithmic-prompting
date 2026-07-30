@@ -1,0 +1,72 @@
+<!--
+  Elevation-style mockup CANDIDATE (not the picker screen) — a base card
+  with a popover/dropdown menu positioned absolutely so it visually
+  overlaps and floats above it, per references/comparison-guidelines.md.
+  Elevation only reads meaningfully against something it's elevated over,
+  so this is never a single card floating alone: the base card and the
+  popover share the same {{SHADOW}} treatment, and the popover's real
+  z-order overlap onto the base card is what makes the effect legible.
+
+  Fill in {{SHADOW}} (a CSS box-shadow value — use "none" for the
+  flat/border-only variant, since box-shadow:none needs a visible border
+  to read at all; use a real box-shadow value like
+  "0 8px 24px rgba(0,0,0,0.4)" for soft/pronounced shadow variants) and
+  {{LABEL}}, delete this comment.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  body { margin:0; padding:3rem 4rem 6rem; font-family:-apple-system,sans-serif; background:#0e0e10; color:#eaeaea; }
+  .label { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6; margin-bottom:1.5rem; }
+  .scene { position:relative; width:420px; }
+  .base-card {
+    position:relative;
+    background:#1a1a1c;
+    border:1px solid #2a2a2e;
+    border-radius:10px;
+    padding:1.5rem;
+    box-shadow: {{SHADOW}};
+  }
+  .base-card h3 { margin:0 0 0.6rem; font-size:1.1rem; }
+  .base-card p { margin:0 0 1rem; font-size:0.9rem; line-height:1.5; opacity:0.75; }
+  .row { display:flex; align-items:center; justify-content:space-between; }
+  .btn { font-family:inherit; font-weight:600; cursor:pointer; border:none; border-radius:6px;
+         padding:0.5rem 1rem; background:#3a5bd9; color:#fff; font-size:0.85rem; }
+  .menu-trigger { font-family:inherit; font-weight:600; cursor:pointer; border:1px solid #3a3a3e;
+                  border-radius:6px; padding:0.5rem 0.9rem; background:#242426; color:#eaeaea; font-size:0.85rem; }
+  .popover {
+    position:absolute;
+    top:4.4rem;
+    right:-1.25rem;
+    width:200px;
+    background:#242426;
+    border:1px solid #2a2a2e;
+    border-radius:8px;
+    padding:0.4rem;
+    box-shadow: {{SHADOW}};
+    z-index:10;
+  }
+  .popover-item { padding:0.55rem 0.7rem; border-radius:5px; font-size:0.85rem; cursor:pointer; }
+  .popover-item:hover, .popover-item.active { background:#33333a; }
+  .popover-item.danger { color:#f87171; }
+  .popover-divider { height:1px; background:#33333a; margin:0.3rem 0; }
+</style></head>
+<body>
+  <div class="label">{{LABEL}}</div>
+  <div class="scene">
+    <div class="base-card">
+      <h3>Project settings</h3>
+      <p>Configure visibility, integrations, and notification defaults for this project.</p>
+      <div class="row">
+        <button class="btn">Save changes</button>
+        <button class="menu-trigger">Actions &#8964;</button>
+      </div>
+    </div>
+    <div class="popover">
+      <div class="popover-item active">Duplicate project</div>
+      <div class="popover-item">Export settings</div>
+      <div class="popover-item">Move to folder&hellip;</div>
+      <div class="popover-divider"></div>
+      <div class="popover-item danger">Delete project</div>
+    </div>
+  </div>
+</body></html>

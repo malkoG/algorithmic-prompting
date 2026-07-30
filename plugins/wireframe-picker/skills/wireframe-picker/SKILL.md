@@ -57,18 +57,7 @@ scripts/start-server.sh --project-dir <repo-root> --open
 
 Launch via your Bash tool's background mode so it survives across turns. Read the printed `server-started` JSON for `url`, `screen_dir`, and `state_dir`.
 
-Write one HTML file into `screen_dir` — a `.cards` grid, one `.card` per variant, `data-choice="<variant-id>"`, image at `/files/<screenshot-filename>.png`:
-
-```html
-<h2>Which layout works better?</h2>
-<div class="cards">
-  <div class="card" data-choice="variant-a" onclick="toggleSelect(this)">
-    <div class="card-image"><img src="/files/variant-a.png"></div>
-    <div class="card-body"><h3>Variant A — Sidebar nav</h3></div>
-  </div>
-  <!-- one .card per variant -->
-</div>
-```
+Write one HTML file into `screen_dir` using a template from `scripts/templates/` — `cards-grid.html.tmpl` for N-way choices, `split-compare.html.tmpl` for a direct 2-way comparison, `approve-reject.html.tmpl` for a binary QA gate, `options-list.html.tmpl` for a lightweight embedded decision with no screenshots. See [references/comparison-guidelines.md](references/comparison-guidelines.md) for which pattern fits which requirement category, and `scripts/templates/mockups/` for ready-made candidate-content templates (e.g. a real OKLCH color ramp, a real webfont specimen) where the category has a concrete technical requirement beyond a plain screenshot.
 
 Never reuse filenames across screens — each iteration gets a fresh file, newest wins.
 
@@ -119,6 +108,10 @@ tail -F -n 0 <decision-a-state_dir>/events <decision-b-state_dir>/events ...
 `tail -F` on multiple files prints an `==> <path> <==` header whenever the active source changes, so each streamed event is attributable to its decision without extra bookkeeping.
 
 4. Resolve each decision independently with `resolve-variant.sh` as its choice comes in — one decision resolving doesn't block or affect the others still running.
+
+## Requirement categories and how to compare them
+
+Not every decision should be rendered and compared the same way — what to screenshot, how many variants, and which markup pattern (`.cards`, `.split`, `.options`, `.approve-reject`) fits depends on the category. Read [references/comparison-guidelines.md](references/comparison-guidelines.md) before starting a **visual identity** decision (brand color, typography, icon style, corner radius, elevation) or a **structural default** decision (default layout, navigation pattern, content density, dark/light mode) — it covers what context each one needs to be judged fairly and which template pattern to use. Other requirement categories (recurring component patterns, page-specific one-offs) aren't covered there yet — use the general guidance in this file for those.
 
 ## Rules
 

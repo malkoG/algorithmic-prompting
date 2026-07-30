@@ -1,0 +1,123 @@
+<!--
+  Mobile navigation-pattern mockup CANDIDATE (not the picker screen) — a
+  realistic single-column mobile screen comparing an open hamburger drawer
+  vs. a fixed bottom tab bar, per references/comparison-guidelines.md
+  ("Navigation pattern" section). This is the MOBILE half of that decision
+  only (desktop rail/top-bar is a separate template, nav-pattern-desktop
+  .html.tmpl) — this MUST be screenshotted at a mobile viewport, the
+  default 1280x800 is meaningless here:
+    capture-screenshot.sh <url> <out.png> --viewport-size 375,667
+
+  The hamburger variant is rendered in its OPEN (drawer expanded) state,
+  not closed — a closed hamburger icon shows nothing to compare against
+  the bottom-tabs variant's always-visible items, which would defeat the
+  point of a real-content comparison.
+
+  Like nav-pattern-desktop.html.tmpl, {{NAV_STYLE}} is NOT a simple CSS
+  custom-property substitution — hamburger and bottom-tabs are
+  structurally different layouts. Below are two clearly-delineated markup
+  blocks, one per NAV_STYLE value ("hamburger" and "bottomtabs"). Whoever
+  fills this in should:
+    1. Pick the block matching the target {{NAV_STYLE}} value.
+    2. Delete the other block entirely (including its comment markers).
+    3. Delete this usage comment.
+  Both blocks share the same nav item set (4 items, one active) and the
+  same content below/behind, so the only thing being compared is nav
+  placement.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+         background:#0e0e10; color:#eaeaea; min-height:100vh; }
+  a { color:inherit; text-decoration:none; }
+
+  /* ---- shared top app bar ---- */
+  .app-bar { display:flex; align-items:center; justify-content:space-between;
+             padding:0.9rem 1rem; border-bottom:1px solid #2a2a2e; }
+  .app-bar .brand { font-weight:700; font-size:1rem; }
+
+  /* ---- shared content below the nav ---- */
+  .content { padding:1.25rem 1rem; }
+  .content h1 { font-size:1.2rem; margin:0 0 0.25rem; }
+  .content .subtitle { font-size:0.8rem; color:#8a8a90; margin:0 0 1.25rem; }
+  .stat-card { background:#18181b; border:1px solid #2a2a2e; border-radius:10px;
+               padding:1rem 1.1rem; margin-bottom:0.75rem; }
+  .stat-card .label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;
+                       color:#8a8a90; margin-bottom:0.4rem; }
+  .stat-card .value { font-size:1.3rem; font-weight:700; }
+</style></head>
+<body>
+
+<!-- ===== BLOCK A — use only when {{NAV_STYLE}} = "hamburger" (drawer OPEN) ===== -->
+<style>
+  .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); }
+  .drawer { position:fixed; top:0; left:0; bottom:0; width:78%; max-width:280px;
+            background:#151517; border-right:1px solid #2a2a2e; padding:1.25rem 0.9rem; }
+  .drawer .brand { font-weight:700; font-size:1rem; padding:0.4rem 0.5rem 1.2rem; }
+  .drawer-item { display:flex; align-items:center; gap:0.7rem; padding:0.7rem 0.6rem;
+                 border-radius:8px; font-size:0.95rem; font-weight:500; color:#a8a8ad; }
+  .drawer-item .icon { width:20px; text-align:center; }
+  .drawer-item.active { background:#26262b; color:#eaeaea; }
+</style>
+<div class="app-bar">
+  <span style="font-size:1.3rem;">&#9776;</span>
+  <span class="brand">Acme</span>
+  <span style="width:1.3rem;"></span>
+</div>
+<div class="content">
+  <h1>Overview</h1>
+  <p class="subtitle">Hamburger menu (open) &middot; workspace summary</p>
+  <div class="stat-card">
+    <div class="label">Active projects</div>
+    <div class="value">24</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Open tasks</div>
+    <div class="value">128</div>
+  </div>
+</div>
+<div class="drawer-overlay"></div>
+<nav class="drawer">
+  <div class="brand">Acme</div>
+  <div class="drawer-item active"><span class="icon">&#9673;</span> Overview</div>
+  <div class="drawer-item"><span class="icon">&#9776;</span> Projects</div>
+  <div class="drawer-item"><span class="icon">&#9993;</span> Messages</div>
+  <div class="drawer-item"><span class="icon">&#9881;</span> Settings</div>
+</nav>
+<!-- ===== END BLOCK A ===== -->
+
+<!-- ===== BLOCK B — use only when {{NAV_STYLE}} = "bottomtabs" =====
+<style>
+  .bottom-tabs { position:fixed; left:0; right:0; bottom:0; display:flex;
+                 background:#151517; border-top:1px solid #2a2a2e; padding:0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom)); }
+  .tab-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:0.2rem;
+              font-size:0.7rem; color:#8a8a90; padding:0.3rem 0; }
+  .tab-item .icon { font-size:1.2rem; }
+  .tab-item.active { color:#eaeaea; }
+</style>
+<div class="app-bar">
+  <span class="brand">Acme</span>
+  <span></span>
+</div>
+<div class="content" style="padding-bottom:5rem;">
+  <h1>Overview</h1>
+  <p class="subtitle">Bottom tab bar &middot; workspace summary</p>
+  <div class="stat-card">
+    <div class="label">Active projects</div>
+    <div class="value">24</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Open tasks</div>
+    <div class="value">128</div>
+  </div>
+</div>
+<nav class="bottom-tabs">
+  <div class="tab-item active"><span class="icon">&#9673;</span> Overview</div>
+  <div class="tab-item"><span class="icon">&#9776;</span> Projects</div>
+  <div class="tab-item"><span class="icon">&#9993;</span> Messages</div>
+  <div class="tab-item"><span class="icon">&#9881;</span> Settings</div>
+</nav>
+===== END BLOCK B ===== -->
+
+</body></html>

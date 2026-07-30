@@ -53,6 +53,29 @@
   .mockup-body { padding: 1rem; }
   .split { display: flex; gap: 1rem; }
   .split > * { flex: 1; }
+  .split > .mockup {
+    cursor: pointer; border-width: 2px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .split > .mockup:hover { border-color: rgba(90,140,255,0.6); }
+  .split > .mockup.selected { border-color: #5a8cff; box-shadow: 0 0 0 2px rgba(90,140,255,0.4); }
+
+  .tag {
+    display: inline-block; font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 4px;
+    background: rgba(90,140,255,0.2); opacity: 0.85; margin-bottom: 0.4rem;
+  }
+
+  .approve-reject { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+  .approve-reject button {
+    font: inherit; cursor: pointer; border: none; border-radius: 8px;
+    padding: 0.9rem 2rem; font-size: 1.05rem; font-weight: 600; color: #fff;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  .approve-reject button:hover { transform: translateY(-1px); }
+  .approve-reject button.approve { background: #2f9e5c; }
+  .approve-reject button.reject { background: #d0483f; }
+  .approve-reject button.selected { box-shadow: 0 0 0 3px rgba(255,255,255,0.55); transform: translateY(-1px); }
 
   #spk-status {
     position: fixed; bottom: 0.75rem; right: 0.75rem;

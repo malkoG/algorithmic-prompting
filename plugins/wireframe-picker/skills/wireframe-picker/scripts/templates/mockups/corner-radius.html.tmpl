@@ -1,0 +1,57 @@
+<!--
+  Corner-radius mockup CANDIDATE (not the picker screen) — a composite strip
+  of button + card + input + avatar, all sharing ONE --radius value, per
+  references/comparison-guidelines.md. Radius reads very differently on
+  small vs. large elements, so all four must be judged together, not as an
+  isolated swatch.
+
+  Fill in {{RADIUS}} (a CSS length, e.g. "0px", "4px", "10px", "999px") and
+  {{LABEL}}, delete this comment. Serve this as its own page, screenshot it,
+  then reference the screenshot from templates/cards-grid.html.tmpl.
+
+  Do NOT hardcode border-radius:50% on the avatar — it uses var(--radius)
+  like everything else, so a large radius (e.g. 999px) naturally reads as a
+  circle and a small radius (e.g. 0px/4px) naturally reads as a square /
+  rounded-square. That's the point of the comparison: the same token applied
+  consistently across very different element sizes.
+-->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  :root { --radius: {{RADIUS}}; }
+  body { margin:0; padding:2rem; font-family:-apple-system,sans-serif; background:#0e0e10; color:#eaeaea; }
+  .label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6; margin:0 0 1.25rem; }
+  .strip { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+
+  .btn { font-family:inherit; font-weight:600; font-size:0.95rem; cursor:pointer;
+         border:none; padding:0.7rem 1.4rem; border-radius: var(--radius);
+         background:#3a5bd9; color:#fff; }
+
+  .card { width:200px; border:1px solid #2a2a2e; background:#18181b;
+          border-radius: var(--radius); overflow:hidden; }
+  .card-header { padding:0.7rem 0.9rem; background:#222226; font-weight:600; font-size:0.85rem; }
+  .card-body { padding:0.9rem; font-size:0.8rem; line-height:1.5; opacity:0.75; }
+
+  .input { font-family:inherit; font-size:0.9rem; padding:0.6rem 0.9rem;
+           border-radius: var(--radius); border:1px solid #3a3a3e;
+           background:#1a1a1c; color:#eaeaea; width:180px; }
+
+  .avatar { width:56px; height:56px; border-radius: var(--radius);
+            background:#7a4de0; color:#fff; display:flex; align-items:center;
+            justify-content:center; font-weight:700; font-size:1.1rem;
+            flex-shrink:0; }
+</style></head>
+<body>
+  <p class="label">{{LABEL}}</p>
+  <div class="strip">
+    <button class="btn">Primary action</button>
+
+    <div class="card">
+      <div class="card-header">Project card</div>
+      <div class="card-body">Composite strip showing button, card, input, and avatar at the same radius.</div>
+    </div>
+
+    <input class="input" value="Text input" readonly>
+
+    <div class="avatar">JS</div>
+  </div>
+</body></html>
